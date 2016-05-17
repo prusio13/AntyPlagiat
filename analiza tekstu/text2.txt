@@ -1,0 +1,16 @@
+asdfasdfasdfasdfasefadfa afedfasdfwerawr
+////////////////////////////////////////////////////
+Use Case 1: Obsługa sprzedaży
+
+Aktor podstawowy (Primary actor): Kasjer
+////////////////////////////////////////////////////
+Główni odbiorcy i oczekiwania względem systemu:
+Kasjer: oczekuje możliwości szybkiego wprowadzania danych, braku błędów płatności ponieważ braki w kasie są odciągane z jego wypłaty
+Klient: chce kupować szybko przy minimalnym wysiłku, oczekuje dowodu zakupu w celu realizacji możliwych zwrotów
+Przedsiębiorstwo: chce poprawnie realizowanych transakcji i zadowolenia Klienta. Chce elementarnej tolerancji na błędy, aby umożliwić pracę nawet jeżeli składniki całego systemu sprzedaży nie działają (np. systemy autoryzacji płatności)
+
+////////////////////////////////////////////////////
+
+Urząd Skarbowy: chce uzyskiwać podatek od każdego sprzedanego produktu, przy sprzedaży systemu na rynku międzynarodowym konieczne uwzględnienie urzędów lokalnych i rządowych
+Agencje autoryzacji płatności: chce otrzymać zapytania o potwierdzenie zapłaty w poprawnym protokole transmisji danych. Chcą poprawnej obsługi transakcji realizowanej przez sklep. 
+
