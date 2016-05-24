@@ -1,0 +1,223 @@
+przedmiot TAS temat C nr_indeksu 396337 liczba_pkt 3 
+
+
+
+
+Zadanie 20 -----------------------------------------------------------
+
+1) Wszystko Java
+Tutaj bêd± ró¿nice w konsoli ze wzglêdu na to, i¿ koñczy³em zadanie w domu(na zajêciach zapomnia³em dodaæ do sprawozdania podpunktu z sam± jav±)
+
+Serwer:
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematC/20a $ java HelloServer2 HelloServant2()
+IOR=IOR:000000000000001849444c3a48656c6c6f417070322f48656c6c6f3a312e3000000000010000000000000082000102000000000a3132372e302e312e31008c6700000031afabcb000000002051059f2700000001000000000000000100000008526f6f74504f410000000008000000010000000014000000000000020000000100000020000000000001000100000002050100010001002000010109000000010001010000000026000000020002
+orb.run();
+podajLiczbe(), 0
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+podajLiczbe(), 1
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+podajLiczbe(), 2
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+podajLiczbe(), 3
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0,
+
+Klient:
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematC/20a $ java HelloClient2
+podajLiczbe=0
+sayHello=Hello world !!!
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematC/20a $ java HelloClient2
+podajLiczbe=1
+sayHello=Hello world !!!
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematC/20a $ java HelloClient2
+podajLiczbe=2
+sayHello=Hello world !!!
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematC/20a $ java HelloClient2
+podajLiczbe=3
+sayHello=Hello world !!!
+
+
+
+
+2) Wszystko TCL
+Najpierw odpalamy serwer poprzez komendê ./tclkit konsola2c.tcl ser.tcl, nastêpnie kompilujemy kod serwera (zaznaczamy wszystko w konsoli i ctrl+enter). W konsoli pojawi nam siê informacja o dzia³aj±cym serwerze:
+
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20b$ ./tclkit konsola2c.tcl ser.tcl
+obj=helloWorld0
+poa=::Combat::PortableServer::rootPOA0
+ref=_combat_obj_1
+HelloWorld IOR = IOR:01666f6f1800000049444c3a48656c6c6f417070322f48656c6c6f3a312e3000020000000000000040000000010102661a000000706332326c2e6c6162732e776d692e616d752e6564752e706c00b19c120000002f313434373834313332382f393331322a31666f00000000010000002400000001666f6f01000000010000001400000001666f6f01000105000000000901010000000000
+
+Kolejnym krokiem jest odpalenie klienta(cli0.tcl) poprzez komendê ./tclkit konsola2c.tcl, a pó¼niej kompilacja kodu poprzez zaznaczenie i ctrl+enter:
+
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20b$ ./tclkit konsola2c.tcl ser.tcl
+obj=helloWorld0
+poa=::Combat::PortableServer::rootPOA0
+ref=_combat_obj_1
+HelloWorld IOR = IOR:01666f6f1800000049444c3a48656c6c6f417070322f48656c6c6f3a312e3000020000000000000040000000010102661a000000706332326c2e6c6162732e776d692e616d752e6564752e706c00b19c120000002f313434373834313332382f393331322a31666f00000000010000002400000001666f6f01000000010000001400000001666f6f01000105000000000901010000000000
+
+Ostatnim krokiem jest wywo³anie $m podajLiczbe, wynik który nam siê pojawi:
+#% 15
+#% 14
+#% 13
+#% 12
+#% 11
+#% 10
+#% 9
+#% 8
+#% 7
+#% 6
+#% 5
+#% 4
+#% 3
+#% 2
+#% 1
+#% 0
+
+
+
+3) Klient - java, serwer - tcl
+
+Analogicznie do poprzedniego zadania, odpalamy serwer tcl, nastêpnie kopiujemy plik Hello.IOR z katalogu tcl do katalogu z klientem javy, na koniec odpalamy klient javy.
+
+Serwer tcl:
+
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20b$ ./tclkit konsola2c.tcl ser.tcl
+obj=helloWorld0
+poa=::Combat::PortableServer::rootPOA0
+ref=_combat_obj_1
+HelloWorld IOR = IOR:01666f6f1800000049444c3a48656c6c6f417070322f48656c6c6f3a312e3000020000000000000040000000010102661a000000706332326c2e6c6162732e776d692e616d752e6564752e706c00a5a7130000002f313434373834323334392f31303338382a316600000000010000002400000001666f6f01000000010000001400000001666f6f01000105000000000901010000000000
+
+Klient java:
+
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20a$ java HelloClient2
+podajLiczbe=0
+sayHello=Jak sie masz ???
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20a$ java HelloClient2
+podajLiczbe=1
+sayHello=Jak sie masz ???
+^[[As396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20a$ java HelloClient2
+podajLiczbe=2
+sayHello=Jak sie masz ???
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20a$ java HelloClient2
+podajLiczbe=3
+sayHello=Jak sie masz ???
+^[[As396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20a$ java HelloClient2
+podajLiczbe=4
+sayHello=Jak sie masz ???
+
+4) Java - Serwer Tcl - Klient
+
+Pierwszym krokiem jest odpalenie serwera w Javie, nastêpnym jest skopiowanie Hello.IOR do katalogu z klientem tcl, na koniec odpalenie klienta tcl jak poprzednio.
+
+Konsola, serwer,Java:
+s396337@pc22l:~/Desktop/TasSprawozdania/Temat C/20a$ java HelloServer2
+HelloServant2()
+IOR=IOR:000000000000001849444c3a48656c6c6f417070322f48656c6c6f3a312e3000000000010000000000000082000102000000000a3132372e302e302e3100b6cc00000031afabcb00000000201a1d351300000001000000000000000100000008526f6f74504f410000000008000000010000000014000000000000020000000100000020000000000001000100000002050100010001002000010109000000010001010000000026000000020002
+orb.run();
+podajLiczbe(), 0
+podajLiczbe(), 1
+podajLiczbe(), 2
+podajLiczbe(), 3
+podajLiczbe(), 4
+
+Tcl, klient:
+#kons_font 16
+lappend auto_path ./combat-tcl-0.7.4; package re combat
+  #% 0.7
+
+  source Hello3.tcl
+  combat::ir add $_ir_Hello3
+    # dodajemy wpis do (local) Interface Repository
+
+    set f [open {Hello.IOR} "r"]; set ior [read $f]; close $f
+      # tu powinna byc sciezka do pliku ior utworzonego przez serwer !!
+
+    set m [corba::string_to_object $ior]
+    # mozna wywolywac metody na rzecz ob. Corby $m ...
+    #% _combat_obj_1
+    #% _combat_obj_2
+
+    $m podajLiczbe
+    #% 4
+    #% 3
+    #% 2
+    #% 1
+    #% 0
+    #% 4
+    #% 3
+    #% 2
+    #% 1
+    #% 0
+
+
+Zadanie 25 -------------------------------------------------
+
+Tutaj na wstêpie chcia³bym napisaæ, i¿ wydruki s± wziête od kolegi z którym robi³em na zajêciach to zadanie(Micha³ Ziach, zawsze siedzimy obok siebie), gdy¿ nie wiedzieæ czemu na moim komputerze wyskakiwa³ b³±d "completed_maybe" i nic wiêcej, mimo rozwijania listy. Wszelkie próby nawet ca³kowitej kopii koñczy³y siê dok³adnie tak samo, tak wiêc wpiszê wszystko moje po kolejnych próbach u mnie na prywatnym komputerze i jego wynik.
+
+Robione za poleceniem wzoruj±c siê na:
+http://students.wmi.amu.edu.pl:20002/file/40228/ns_example.txt
+
+Konsola:
+lappend auto_path ./combat-tcl-0.7.4
+  #% /home/kuba/Pulpit/TematC/25/tclkit/lib/tcl8.4 /home/kuba/Pulpit/TematC/25/tclkit/lib /home/kuba/Pulpit/TematC/25/tclkit/lib/tk8.4 ./combat-tcl-0.7.4
+
+package re combat
+  #% 0.7
+
+source COS_ns.tcl
+  #% 1
+
+combat::ir add $_ir_COS_ns
+  #% 
+
+set f [open {NS.IOR} "r"]; set ior [read $f]; close $f
+  #% 
+
+set ns [corba::string_to_object $ior]
+  #% _combat_obj_1
+
+Tutaj zaczê³y siê u mnie problemy:
+set answer [$ns resolve_str "ScriptCommander"]
+Problemem chyba jest samo czytanie ior, gdy¿ nie jest w stanie dokonaæ resolve_str
+$ns list 10 x y; join $x \n
+$answer list 10 x y; join $x\n
+
+Wydruki:
+1)
+#% binding_name {{id EventChannelFactory kind {}}} binding_type nobject
+binding_name {{id PropertySetDefFactory kind {}}} binding_type nobject
+binding_name {{id PropertySetFactory kind {}}} binding_type nobject
+binding_name {{id propset1 kind {}}} binding_type nobject
+2)
+#% binding_name {{id EventChannelFactory kind {}}} binding_type nobject
+binding_name {{id PropertySetDefFactory kind {}}} binding_type nobject
+binding_name {{id PropertySetFactory kind {}}} binding_type nobject
+binding_name {{id ScriptCommander kind {}}} binding_type nobject
+binding_name {{id propset1 kind {}}} binding_type nobject
+
+Zaznaczê, ¿e plik NS.IOR zosta³ zmieniony, wiêc naprawdê nie wiem w czym problem.
+
+Zadanie 30 -------------------------------------------------
+
+Po wiêkszych przemy¶leniach(nie tylko moich) mo¿na by³o u¿yæ po prostu serwera javowego z tematu B, gdy¿ interfejs Odleg³yObiekt jest dok³adnie takim samym jaki jest wymagany.
+
+Tak wiêc zaczynamy od kompilacji sss.java:
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematC/30 $ javac -Xlint sss.java 
+(u¿y³em opcji -Xlint, gdy¿ wyrzuca³o mi ostrze¿enia, ale bez ¿adnego tekstu)
+
+nastêpnie u¿ywaj±c podanej w tre¶ci zadania komendy:
+rmic -iiop -idl -noValueMethods CCC1
+tylko zamiast CCC1 z OdleglaKlasa, czyli:
+rmic -iiop -idl -novalueMethods OdleglaKlasa
+
+otrzymujemy nastêpuj±ce obiekty idl:
+OdleglyObiekt.idl
+oraz
+OdleglaKlasa.idl
+
+
+}

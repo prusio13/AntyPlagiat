@@ -1,0 +1,137 @@
+przedmiot TAS temat B nr_indeksu 396337 liczba_pkt 2 
+
+
+
+
+Zadanie 10 ------------------------------------------------
+
+1) W tym podpunkcie nale¿a³o dodaæ pêtlê, która wypisuje aktualny w±tek, po wypisaniu go(po stronie serwera) ³atwo wtedy zobaczyæ, ¿e obs³ugiwane s± aktualnie dwa(czyli dwóch klientów).
+
+Dopisany kod:
+for (int i = 0; i < 10; i++) {
+	System.out.println("(" + Thread.currentThread() + ") " + i);
+	try {Thread.sleep(200);} catch(Exception e){};
+    }
+
+
+Wydruk z konsoli(po stronie serwera):
+
+sss: zaczynam tworzyc obiekty ...
+sss: OdleglaKlasa(); ok
+sss: OdleglaKlasa(String); ok
+sss: obiekty utworzone !!!
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 0
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 1
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 0
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 2
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 1
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 3
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 2
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 4
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 3
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 5
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 4
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 6
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 5
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 7
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 6
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 8
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 7
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 9
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 8
+sss: powolnaMetoda(); licznik=2
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 9
+sss: powolnaMetoda(); koniec dzialania !
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 0
+sss: powolnaMetoda(); licznik=2
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 1
+sss: powolnaMetoda(); koniec dzialania !
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 0
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 2
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 1
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 3
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 2
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 4
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 3
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 5
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 4
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 6
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 5
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 7
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 6
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 8
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 7
+(Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime]) 9
+(Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime]) 8
+
+Widaæ po numerze po³±czenia, i¿ s± to dwa ró¿ne okna o numerach w tym przypadku 2 i 3.
+
+2)
+Ró¿nica miêdzy obiektem eksportowanym, a takim który nie jest eksportowany jest taka, i¿ ten pierwszy jest wykonywany zarówno lokalnie, czyli po stronie klienta, jak i po stronie serwera, natomiast nieeksportowany obiekt bêdzie jedynie po stronie klienta.
+Aby obiekt nie by³ eksportowany, w naszym przypadku nale¿y zakomentowaæ liniê:
+
+UnicastRemoteObject.exportObject(this);
+
+która znajduje siê w pliku sss.java, w OdleglaKlasa(String s). Powoduje to, ¿e po stronie serwera nie wy¶wietla nam siê nic zwi±zane z dzia³aniami klienta, natomiast wszystko pojawia siê po stronie klienta.
+
+3)
+Nale¿y zacz±æ od zadeklarowania metody w pliku OdleglyObiekt.java
+Teraz plik prawid³owo powinien wygl±daæ tak:
+import java.rmi.*;
+
+public interface OdleglyObiekt extends Remote
+{
+  OdleglyObiekt drugiObiekt() throws RemoteException;
+  int powolnaMetoda() throws RemoteException;
+  void generujeBlad() throws RemoteException;
+}
+
+Nastêpnie w pliku serwera sss.java nale¿y zdefiniowaæ metodê generuj±c± b³±d, wed³ug wzoru ze strony
+ public void generujeBlad() throws RemoteException
+    {
+        throw new RemoteException("sztucznie wygenerowany blad ...");
+    }
+
+oraz wywo³aæ j± poprzez generujeBlad();
+
+wydruk z klienta:
+
+kuba@kuba-Lenovo-IdeaPad-Y580 ~/Pulpit/TematB/zadanie 10/KLIENT $ java kkk
+kkk: blad !!! RemoteException occurred in server thread; nested exception is: 
+	java.rmi.RemoteException: sztucznie wygenerowany blad ...
+
+
+
+Zadanie 17. ---------------------------------------------------
+
+Java wykorzystuje do serializacji XML. Jest on przyjemny w czytaniu, gdy¿ wykorzystuje sk³adniê podobn± do tekstu pisanego przez ludzi, dodatkowo dziêki XML mo¿na edytowaæ ju¿ serializowane dane. Istniej± równie¿ ogólnie przyjête specyfikacje okre¶laj±ce jak parsowaæ i transformowaæ dokumenty XML oraz wiele narzêdzi i bibliotek u³atwiaj±cych implementacjê tych specyfikacji. Generalnie XML jest powszechnie stosowany, w aplikacjach biurkowych, np. w OpenOffice jak i serwerowych, np. Web Services. Wa¿ne jest to, ¿e u¿ywany jest w aplikacjach pisanych w ró¿nych jêzykach programowania XML. W javie wszystkie prymitywne typy danych s± serializowane. Problemem, a w³a¶ciwie ograniczeniem jest fakt, i¿ ograniczone jest to, jak± ilo¶æ danych mo¿na zaalokowaæ w pamiêci maszyny wirtualnej. 
+W XDR( eXternal Data Representation Standard)elementy reprezentowane s± przez wielokrotno¶ci 32 bitów.
+Typy danych w XDR:
+-int, 
+-Unsigned int,
+-enumeration,
+-boolean,
+-hyper int,
+-unsigned hyper int,
+-floating-point,
+-double-precision floating-point,
+-quadruple-precision floating-point,
+-fixed length opaque data,
+-string,
+-fixed-length array,
+-variable-length array,
+-struct,
+-discriminated union,
+-void,
+-constant,
+-typedef,
+-optional-data.
+
+Rzecz±, która ró¿ni serializacjê javow± od XDR jest to, ¿e przy XDR serwer, jak i klient musz± znaæ strukturê danych(np. def. klasy).
+
+
+http://wazniak.mimuw.edu.pl/index.php?title=PO_Serializacja#Serializacja_do_postaci_XML
+https://tools.ietf.org/html/rfc4506https://en.wikipedia.org/wiki/External_Data_Representation
+https://en.wikipedia.org/wiki/External_Data_Representation
+
+}

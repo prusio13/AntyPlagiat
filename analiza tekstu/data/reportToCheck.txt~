@@ -1,0 +1,18 @@
+{
+	char *host;
+	char *raz;
+	char *dwa;
+
+	if (argc < 2) {
+		printf ("usage: %s server_host\n", argv[0]);
+		exit (1);
+	}
+	host = argv[1];
+	raz= argv[2];
+	dwa = argv[3];
+	int i = atoi(raz);
+	int j = atoi(dwa);
+	progservice_1 (host, i, j);
+
+exit (0);
+}

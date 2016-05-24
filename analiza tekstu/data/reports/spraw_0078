@@ -1,0 +1,471 @@
+przedmiot TAS temat A nr_indeksu 396316 liczba_pkt 4 
+
+
+
+Zadanie 1 -------------------------------------
+Zbadaj i opisz jak rpcgen tlumaczy bardziej z?o?one struktury danych, ktorych def jest podana poni?ej; aby wykona? to zadanie skompiluj plik "rpcgen -aC plik.x" a potem zajrzyj do plikow ...
+struct Macierz {
+  float Elem <>;
+  int IleW; int IleK;
+};
+typedef struct Macierz Mac;
+
+struct TrzyMacierze { Mac M1; Mac M2; Mac M3; };
+typedef struct TrzyMacierze TrzyMac;
+
+program ProgMacierze {
+  version VerMacierze {
+    void PokazMacierz(Mac) = 1;
+    void OperacjaNaMacierzach(TrzyMac) = 2;
+  } = 1;
+} = 0x21001234;
+
+--> jak jest zbudowany tradycyjny klient RPC
+
+a) otrzymuje "id klienta"
+b) wywoluje odlegla procedure
+
+--> jak jest zbudowany tradycyjny serwer RPC
+
+a) otrzymuje "id transportu"
+b) rejestruje "usluge RPC" u demona "portmap"
+c) czeka na klientow; 
+wywoluje odpowiednie procedury dla klientow
+i zwraca wyniki
+
+--> jak u?ywa? plików wygenerowanych przez "rpcgen -aC sum.x"
+a) nale?y JEDNOKROTNIE uruchomi? rpcgen 
+b) zmodyfikowac pliki sum_client.c i sum_server.c,
+c) skompilowa? wszystko przez "make -f Makefile.sum"
+d) mozna uruchomic server (wczesniej upewni? si? ze dzia?a portmap)
+oraz uruchamiac klienta
+
+Zadanie 2 -------------------------------------
+Zaprogramuj aplikacje "sum.x" i wyprobuj jej dzialanie; w aplikacji tej klient uruchamia proc RPC, która sumuje dwie liczby; te dwie liczby powinny by? parametrami wywo?ania klienta; klient powinien wypisywa? tak?e wynik dodawania; zmiany jakie trzeba wprowadzi? do sum_client.c i sum_server.c ?atwo zauwa?y? gdy si? do tych plików zajrzy...
+klienta i serwer uruchamiaj na lokalnej maszynie; zobacz jakie proc RPC s? dost?pne przy pomocy "rpcinfo -p"; do sprawozdania wstaw odpowiednie wydruki!
+
+Fragment sum_client.c
+
+int progservice_1(char *host, int a, int b)
+{
+	CLIENT *clnt;
+	int  *result_1;
+	ParaLi  suma_1_arg;
+
+	#ifndef	DEBUG
+	clnt = clnt_create(host, PROGSERVICE, VERSERVICE, "udp");
+	if (clnt == NULL) 
+	{
+		clnt_pcreateerror(host);
+		exit (1);
+	}
+	#endif	/* DEBUG */
+	
+	suma_1_arg.x1 = a;
+	suma_1_arg.x2 = b;
+
+	result_1 = suma_1(&suma_1_arg, clnt);
+	
+	if (result_1 == (int *) NULL) 
+	{
+		clnt_perror(clnt, "call failed");
+	}
+	
+	#ifndef	DEBUG
+	clnt_destroy(clnt);
+	#endif	 /* DEBUG */
+
+	
+	return *result_1;
+}
+
+Fragment sum_server.c
+
+int * suma_1_svc(ParaLi *argp, struct svc_req *rqstp)
+{
+	static int  result;
+	
+	result = argp->x1 + argp->x2;
+	
+	return &result;
+}
+
+Wydruki
+
+pikachu@debian:~ Pulpit/TAS/A/2$ ./sum_client 2 2
+4
+pikachu@debian:~ Pulpit/TAS/A/2$./sum_server
+2 2
+
+Zadanie 3 -------------------------------------
+Zdefiniuj proc RPC pozwalaj?c? przes?a? macierz o dowolnych wymiarach do serwera oraz wyœwietli? j? na terminalu po stronie serwera; koniecznie pami?taj o mo?liwych wyciekach pami?ci!! 
+
+Fragment klienta
+
+void progservice_1(char *host)
+{
+	CLIENT *clnt;
+	int  *result_1;
+	Macierz  write_arg;
+
+	#ifndef	DEBUG
+	clnt = clnt_create(host, PROGSERVICE, VERSERVICE, "udp");
+	
+	if (clnt == NULL) 
+	{
+		clnt_pcreateerror(host);
+		exit(1);
+	}
+	
+	#endif	/* DEBUG */
+
+    int n, m;
+    scanf("%d%d", &n, &m);
+
+	write_arg.x.x_val = calloc(n * m, sizeof(int));
+	write_arg.x.x_len = n * m;
+	write_arg.k = m;
+    write_arg.l = n;
+
+	int i, j;	
+	
+	for (i = 0 ; i < n * m; i++) 
+	{
+		scanf("%d", write_arg.x.x_val + i );
+		
+	}
+
+	result_1 = write(&write_arg, clnt);
+	
+	if (result_1 == (int *) NULL) 
+	{
+		clnt_perror (clnt, "call failed");
+		
+	}
+
+	free(write_arg.x.x_val);
+	
+	
+	#ifndef	DEBUG
+	clnt_destroy (clnt);
+	#endif	 /* DEBUG */
+	
+	
+}
+
+Fragment serwera
+
+int *write_svc(Macierz *argp, struct svc_req *rqstp)
+{
+	static int result;
+
+	int i;
+	
+	for(i = 0; i < argp->m * argp->l; ++i ) 
+	{
+		printf("%d ", argp->x.x_val[i]);
+		
+		if(i % argp->m == argp->m - 1 ) printf( "\n" );
+		
+	}
+
+	
+	return &result;
+}
+
+Wydruki:
+
+pikachu@debian:~ Pulpit/TAS/A/3$./Macierz_client
+3 3
+1 4 7
+2 5 8
+3 6 9
+
+pikachu@debian:~ Pulpit/TAS/A/3$ ./Macierz_server
+1 4 7
+2 5 8
+3 6 9
+ 
+
+Zadanie 4 -------------------------------------
+Zdefiniuj proc RPC pozwalaj?ce wykonywa? operacje na macierzach (mno?enie i dodawanie); zwró? uwag?, ?e teraz macierze b?d? przekazywane w obie strony: kli->ser i ser->kli; zadbaj o prawid?owe zwalnianie pami?ci (patrz te? uwagi poni?ej na ten temat!); do sprawozdania wstaw wydruki i kluczowe fragmenty kodu (zwlaszcza plik.x)
+Serwer
+
+Macierz * add_1_svc(ParaMacierzy *argp, struct svc_req *rqstp)
+{
+static Macierz  result;
+
+	Macierz* A = &argp->a;
+	Macierz* B = &argp->b;
+	
+	if((A->l != B->l) || (A->k != B->k))
+	{
+		printf("Niepoprawny rozmiar macierzy");
+		return NULL;
+	}
+
+	result.l = A->l;
+	result.k = A->k;
+
+	result.x.x_val = calloc(A->k * A->l, sizeof(int));
+	result.x.x_len = A->k * A->l;
+
+	int i;
+	
+	for(i = 0; i < A->k * A->l; i++)
+	{
+		result.x.x_val[i] = A->x.x_val[i] + B->x.x_val[i];
+	}
+
+	return &result;
+	
+}
+
+Macierz * mult_1_svc(ParaMacierzy *argp, struct svc_req *rqstp)
+{
+	static Macierz  result;
+	Macierz* A = &argp->a;
+	Macierz* B = &argp->b;
+	
+	if((A->k != B->l))
+	{
+		printf("Niepoprawny rozmiar macierzy");
+		return NULL;
+		
+	}
+
+	result.l = A->l;
+	result.k = B->k;
+	result.x.x_val = calloc(result.k * result.l, sizeof(int));
+	result.x.x_len = result.k * result.l;
+
+	int i;
+	
+	for(i = 0; i < result.l; i++)
+	{
+		int j;
+		for(j = 0; j < result.k; j++)
+		{
+		
+			int k;
+			
+			for(k = 0; k < A->k; k++)
+			{
+				result.x.x_val[i * result.k + j] += A->x.x_val[i * A->k + k] * B->x.x_val[k * B->k + j];
+				
+			}	
+		}
+	}
+	
+	
+	return &result;
+	
+} 
+
+Klient 
+
+void progservice_1(char *host)
+{
+	CLIENT *clnt;
+	Macierz *result_1;
+	ParaMacierzy write_arg;
+
+	int n, m;
+	
+		
+	scanf("%d%d", &n, &m);
+
+	write_arg.a.x.x_val = calloc(n * m, sizeof(int));
+	write_arg.b.x.x_val = calloc(n * m, sizeof(int));
+
+	
+    write_arg.a.x.x_len = n * m;
+    write_arg.b.x.x_len = n * m;
+	write_arg.a.l = n;
+    write_arg.a.k = m;
+    write_arg.b.l = n;
+    write_arg.b.k = m;
+
+	
+	int i;
+	
+	for(i = 0; i < n * m; i++)
+	{
+		scanf("%d", write_arg.a.x.x_val + i);
+		
+    }
+	for(i = 0; i < n * m; i++)
+    {
+		scanf("%d", write_arg.b.x.x_val + i);
+		
+    }
+
+	#ifndef	DEBUG
+	clnt = clnt_create(host, PROGSERVICE, VERSERVICE, "udp");
+	
+	if (clnt == NULL) 
+	{
+		clnt_pcreateerror(host);
+		exit (1);
+		
+	}
+	#endif	/* DEBUG */
+
+	result_1 = add_1(&write_arg, clnt);
+	
+	if (result_1 == (Macierz *) NULL) 
+	{
+		clnt_perror (clnt, "call failed");
+		
+	}
+	
+	
+	for(i = 0; i < result_1->l * result_1->k; ++i)
+	{
+		printf("%d ", result_1->x.x_val[i]);
+		if(i % result_1->l == result_1->l - 1) 
+		
+	}
+
+	#ifndef	DEBUG
+	clnt_destroy (clnt);
+	
+	xdr_free ((xdrproc_t) xdr_Macierz, (char *) result_1);
+
+	
+	#endif	 /* DEBUG */
+}
+
+void progservice_2(char *host)
+{
+	CLIENT *clnt;
+	Macierz  *result_1;
+	ParaMacierzy  write_arg;
+	
+
+	int n, m;
+		
+	int n2, m2;
+		
+	scanf("%d%d", &n, &m);
+
+	write_arg.a.x.x_val = calloc(n * m, sizeof(int));
+
+	int i;
+	
+	for(i = 0; i < n * m; i++)
+	{
+		scanf("%d", write_arg.a.x.x_val + i);
+    }
+
+
+	scanf("%d%d", &n2, &m2);
+
+	write_arg.b.x.x_val = calloc(n2 * m2, sizeof(int));
+
+    write_arg.a.x.x_len = n * m;
+	
+    write_arg.b.x.x_len = n2 * m2;
+
+	write_arg.a.l = n;
+    write_arg.a.k = m;
+
+    write_arg.b.l = n2;
+	
+    write_arg.b.k = m2;
+
+	
+	for( i = 0; i < n2 * m2; i++ )
+    
+	{
+		scanf( "%d", write_arg.b.x.x_val + i );
+    }
+ 
+
+	#ifndef	DEBUG
+	clnt = clnt_create (host, PROGSERVICE, VERSERVICE, "udp");
+	
+	if (clnt == NULL) 
+	{
+		clnt_pcreateerror(host);
+		exit(1);
+		
+	}
+	#endif	/* DEBUG */
+
+	
+	result_1 = mult_1(&write_arg, clnt);
+	if (result_1 == (Macierz *) NULL) 
+	
+	{
+		clnt_perror (clnt, "call failed");
+	}
+
+
+	for(i = 0; i < result_1->l * result_1->k; ++i )
+	{
+		printf("%d ", result_1->x.x_val[i]);
+		if(i % result_1->l == result_1->l - 1) 
+			printf("\n");
+			
+	}
+
+	xdr_free ((xdrproc_t) xdr_Macierz, (char *) result_1);
+	
+	free( write_arg.a.x.x_val );
+	free( write_arg.b.x.x_val );
+
+	#ifndef	DEBUG
+	clnt_destroy (clnt);
+	
+	#endif	 /* DEBUG */
+	
+	
+
+}
+
+Main
+
+int main (int argc, char *argv[])
+{
+	char *host;
+
+	host = argv[1];
+	progservice_2(host);
+	
+	exit (0);
+	
+	
+}
+
+Wydruki
+Mno?enie
+
+pikachu@debian:~ Pulpit/TAS/A/4$ ./Macierz_client
+3 3
+1 2 3
+4 5 6
+7 8 9
+3 3
+8 6 3
+4 1 2
+3 6 7
+25 26 28
+70 65 64
+115 104 100
+pikachu@debian:~ Pulpit/TAS/A/4$ ./Macierz_server
+
+Dodawanie
+
+pikachu@debian:~ Pulpit/TAS/A/4$ ./Macierz_client
+3 3
+1 2 3
+4 5 6
+7 8 9
+9 8 7
+6 5 4
+3 2 1
+10 10 10
+10 10 10
+10 10 10
+pikachu@debian:~ Pulpit/TAS/A/4$ ./Macierz_server}

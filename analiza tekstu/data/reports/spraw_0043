@@ -1,0 +1,16 @@
+przedmiot TAS temat C nr_indeksu 396464 liczba_pkt 2 
+
+
+
+Zadanie 20 -------------------------------------
+
+Uda³o siê bez problemu po³±czyæ zarówno Java - Java, Java - Tcl, Tcl - Java. Co ciekawe IOR obiektu by³ ró¿ny dla serwera javy i serwera tcl. Nie mia³o to wp³ywu na funkcjonowanie programu. Metoda seyHello() zwróca³a prawid³owo "jak sie masz???"
+
+Zadanie 21 -------------------------------------
+
+1. Przy wywo³ywaniu metody podajLiczbê na jednym obiekcie otrzyma³em kolejne liczby ca³kowite. Przy tworzeniu nowych obiektów i wywo³ywaniu na nich tej metody - wyniki mocno siê miêdzy sob± ró¿ni³y. Warto¶æ pierwszej zwróconej liczby zale¿a³a od momentu stworzenia obiektu.
+
+2. Wywo³ywanie równoczesne tej samej metody przez ró¿nych klientów nie wp³ywa na funkcjonowanie serwera. Radzi on sobie z tym i poprawnie wykonuje zadanie.
+
+3. Po stronie serwera doda³em kod odpowiedzialny za uczynienie klienta obiektem boa, a nastêpnie wywo³anie na nim funkcji hello, która drukowa³a napis "Hello there!". Nie uda³o mi siê uzyskaæ ¿adnego pozytywnego efektu przy próbie zrobienia callbacku, który by siê d³ugo wykonywa³ - klient przestawa³ reagowaæ i trzeba by³o koñczyæ jego pracê przez terminacjê w±tku.
+}

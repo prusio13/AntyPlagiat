@@ -1,0 +1,819 @@
+przedmiot TAS temat C nr_indeksu s396463 liczba_pkt 6 
+
+
+
+Zadanie 20 ---------------------
+1. Klient Java - Serwer Java
+HelloServant2()
+IOR=IOR:000000000000001849444c3a48656c6c6f417070322f48656c6c6f3a312e3000000000010000000000000082000102000000000a3132372e302e302e310097e800000031afabcb00000000206b6e2f9100000001000000000000000100000008526f6f74504f410000000008000000010000000014000000000000020000000100000020000000000001000100000002050100010001002000010109000000010001010000000026000000020002
+orb.run();
+podajLiczbe(), 0
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+podajLiczbe(), 2
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+
+java HelloClient2 
+podajLiczbe=0
+sayHello=Hello world !!!
+
+java HelloClient2 
+podajLiczbe=1
+sayHello=Hello world !!!
+
+2. Klient TCL - Serwer TCL
+Klient:
+lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/C/tclkit/lib/tcl8.4 /home/students/s396463/TAS/C/tclkit/lib /home/students/s396463/TAS/C/tclkit/lib/tk8.4 combat-tcl-0.7.4 combat-tcl-0.7.4 combat-tcl-0.7.4
+lappend auto_path tcl++230
+package require combat
+  #% 0.7
+
+corba::init
+# nie jest konieczne
+
+#source hello2.tcl
+#combat::ir add $_ir_hello2
+source Hello_Tcl/Hello3.tcl
+  #% 1
+combat::ir add $_ir_Hello3
+  #% 
+  # dodajemy wpis do (local) Interface Repository
+
+# czy dziala bez "combat::ir add" ? odp: NIE;
+# czyli plik hello2.tcl utworzony przez idl2tcl.exe jest niezbedny !!!
+
+# plik Hello.ior musi byc produkowany
+# przy kazdym utworzeniu obiektu/serwera !
+set f [open {Hello_Java/Hello.IOR} "r"];
+  #% file6
+set ior [read $f]; close $f
+  #% 
+
+set m [corba::string_to_object $ior]
+  #% _combat_obj_4
+# $m jest "uchwytem" (handle) wg terminologii Combata ...
+$m sayHello
+  #% Jak sie masz ???
+  
+Serwer:
+lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/C/tclkit/lib/tcl8.4 /home/students/s396463/TAS/C/tclkit/lib /home/students/s396463/TAS/C/tclkit/lib/tk8.4 combat-tcl-0.7.4 combat-tcl-0.7.4
+package require combat
+  #% 0.7
+
+	# sprawdzam czy dziala dziedziczenie ... tak
+	# (ale sa problemy z "body")
+	# rozwiazanie: zdefiniowac metode sayHello2 w klasie HelloWorld !
+#class StaryHelloWorld {
+#  public method sayHello2 {_str} {
+#    return "sayHello2: _str=$_str"
+#  }
+#}
+
+class HelloWorld {
+  #inherit PortableServer::ServantBase StaryHelloWorld
+  inherit PortableServer::ServantBase
+  public method _Interface {} {
+    return "IDL:HelloApp2/Hello:1.0"
+      # mozna to wyciagnac z pliku hello2.tcl
+  }
+
+  public method sayHello {} {
+    return "Jak sie masz ???"
+  }
+
+  #public method sayHello2 {_str} {
+  #  return "sayHello2: _str=$_str"
+  #}
+  public method sayHello2 {_str} {
+    set str "$_str\[$str\]"
+    return "sayHello2: str=$str"
+  }
+
+  public method podajLiczbe {} {
+    set x $liczba; incr liczba
+    return $x
+  }
+
+  # ta metoda tworzy nowy obiekt HelloWorld i zwraca ref do tego obiektu
+  #
+  public method sayHello_nowyObiekt {} {
+    global poa
+
+    puts "poczatek sayHello_nowyObiekt"
+    puts "poa=$poa"
+
+    set obj [namespace current]::[HelloWorld #auto]
+        #set obj [HelloWorld #auto]; global $obj
+          # to jest inne rozwiazanie; czy dziala? odp: NIE! dlaczego???
+    puts "obj=$obj"
+
+    set ref [$poa servant_to_reference $obj]
+    puts "ref=$ref"
+        # na tym sie zawiesza !?!?!?!?
+        ### caly problem polegal na braku "[namespace current]::" !!!
+
+    puts "koniec sayHello_nowyObiekt"
+    return $ref
+  }
+
+  # typedef long tab[10];
+  # void wektorRazy2(in tab tab1, out tab tab2);
+  public method wektorRazy2 {tab1 tab2} {
+    puts "wektorRazy2 poczatek"
+    upvar $tab2 tab2_value
+      # w ten sposob sie przekazuje parametry "przez zmienna"
+
+    set tab2_value ""
+    foreach x $tab1 {lappend tab2_value [expr $x*3]}
+
+    puts "wektorRazy2 koniec"
+  }
+
+  #void uruchomZwrotnaMet(in wyw ref);
+  public method uruchomZwrotnaMet ref {
+    for {set i 0} {$i<5} {incr i} {
+      $ref metoda
+    }
+  }
+
+  private variable str ""
+  private variable liczba 0
+}
+  #% 
+
+corba::init
+  #% 
+
+#source hello2.tcl
+#combat::ir add $_ir_hello2
+source Hello_Tcl/Hello3.tcl
+  #% 1
+combat::ir add $_ir_Hello3
+  #% 
+	# tego zapomnieli w dokumentacji ???
+	# ladujemy dane do Interf. Rep.
+	# "combat::ir add ..." jest niezbedne !
+
+
+set obj [HelloWorld #auto]
+  #% helloWorld0
+	# tworzymy obiekt (servant-a)
+puts "obj=$obj"
+  #% 
+
+### POA -------------------------------------------------------
+
+set poa [corba::resolve_initial_references "RootPOA"]
+set mgr [$poa the_POAManager]
+
+#set mypoa [$poa create_POA MyPOA $mgr {RETAIN USER_ID}]
+
+#set oid [$poa activate_object $obj]
+#set ref [$poa id_to_reference $oid]
+
+set ref [$poa servant_to_reference $obj]
+	# tez dziala! (z pominieciem oid)
+	# prawdopodobnie "$poa activate_object $obj" tez by zadzialalo
+
+puts "poa=$poa"
+puts "ref=$ref"
+
+set ior [corba::object_to_string $ref]
+	# ref i oid to nie to samo !!!
+puts "HelloWorld IOR = $ior"
+set f [open {Hello_Java/Hello.IOR} "w"];
+  #% file6
+puts $f $ior; close $f
+  #% 
+
+$mgr activate
+  #% 
+  
+3. Klient TCL - Serwer Java
+Serwer:
+java HelloServer2 
+HelloServant2()
+IOR=IOR:000000000000001849444c3a48656c6c6f417070322f48656c6c6f3a312e3000000000010000000000000082000102000000000a3132372e302e302e310093d900000031afabcb00000000206b62ac1e00000001000000000000000100000008526f6f74504f410000000008000000010000000014000000000000020000000100000020000000000001000100000002050100010001002000010109000000010001010000000026000000020002
+orb.run();
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+sayHello()
+8: 0, 0, 0, 1, 0, 0, 0, 0, 
+podajLiczbe(), 0
+wektorRazy2 - poczatek
+wektorRazy2 - koniec
+
+Klient:
+lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/C/tclkit/lib/tcl8.4 /home/students/s396463/TAS/C/tclkit/lib /home/students/s396463/TAS/C/tclkit/lib/tk8.4 combat-tcl-0.7.4
+package require combat
+  #% 0.7
+
+source Hello_Tcl/Hello3.tcl
+combat::ir add $_ir_Hello3
+  # dodajemy wpis do (local) Interface Repository
+
+set f [open {Hello_Java/Hello.IOR} "r"];
+  #% file5
+set ior [read $f]; close $f
+  #% 
+
+set m [corba::string_to_object $ior]
+  #% _combat_obj_1
+# $m jest "uchwytem" (handle) wg terminologii Combata ...
+
+# eksperyment z wywolaniem zwrotnym ...
+#
+$m sayHello
+  #% Hello world !!!
+  #% Hello world !!!
+
+$m podajLiczbe
+  #% 0
+
+$m wektorRazy2 {1 2 3 4 5 6 7 8 9 10} q 
+  #% 
+set q
+  #% 2 4 6 8 10 12 14 16 18 20
+
+ 
+4. Klient Java - Serwer TCL:
+Klient:
+java HelloClient2 
+podajLiczbe=0
+sayHello=Jak sie masz ???
+
+Serwer:
+lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/TematC/tclkit/lib/tcl8.4 /home/students/s396463/TAS/TematC/tclkit/lib /home/students/s396463/TAS/TematC/tclkit/lib/tk8.4 combat-tcl-0.7.4 combat-tcl-0.7.4
+package require combat
+  #% 0.7
+
+	# sprawdzam czy dziala dziedziczenie ... tak
+	# (ale sa problemy z "body")
+	# rozwiazanie: zdefiniowac metode sayHello2 w klasie HelloWorld !
+#class StaryHelloWorld {
+#  public method sayHello2 {_str} {
+#    return "sayHello2: _str=$_str"
+#  }
+#}
+
+class HelloWorld {
+  #inherit PortableServer::ServantBase StaryHelloWorld
+  inherit PortableServer::ServantBase
+  public method _Interface {} {
+    return "IDL:HelloApp2/Hello:1.0"
+      # mozna to wyciagnac z pliku hello2.tcl
+  }
+
+  public method sayHello {} {
+    return "Jak sie masz ???"
+  }
+
+  #public method sayHello2 {_str} {
+  #  return "sayHello2: _str=$_str"
+  #}
+  public method sayHello2 {_str} {
+    set str "$_str\[$str\]"
+    return "sayHello2: str=$str"
+  }
+
+  public method podajLiczbe {} {
+    set x $liczba; incr liczba
+    return $x
+  }
+
+  # ta metoda tworzy nowy obiekt HelloWorld i zwraca ref do tego obiektu
+  #
+  public method sayHello_nowyObiekt {} {
+    global poa
+
+    puts "poczatek sayHello_nowyObiekt"
+    puts "poa=$poa"
+
+    set obj [namespace current]::[HelloWorld #auto]
+        #set obj [HelloWorld #auto]; global $obj
+          # to jest inne rozwiazanie; czy dziala? odp: NIE! dlaczego???
+    puts "obj=$obj"
+
+    set ref [$poa servant_to_reference $obj]
+    puts "ref=$ref"
+        # na tym sie zawiesza !?!?!?!?
+        ### caly problem polegal na braku "[namespace current]::" !!!
+
+    puts "koniec sayHello_nowyObiekt"
+    return $ref
+  }
+
+  # typedef long tab[10];
+  # void wektorRazy2(in tab tab1, out tab tab2);
+  public method wektorRazy2 {tab1 tab2} {
+    puts "wektorRazy2 poczatek"
+    upvar $tab2 tab2_value
+      # w ten sposob sie przekazuje parametry "przez zmienna"
+
+    set tab2_value ""
+    foreach x $tab1 {lappend tab2_value [expr $x*3]}
+
+    puts "wektorRazy2 koniec"
+  }
+
+  #void uruchomZwrotnaMet(in wyw ref);
+  public method uruchomZwrotnaMet ref {
+    for {set i 0} {$i<5} {incr i} {
+      $ref metoda
+    }
+  }
+
+  private variable str ""
+  private variable liczba 0
+}
+  #% 
+
+corba::init
+  #% 
+
+#source hello2.tcl
+#combat::ir add $_ir_hello2
+source Hello_Tcl/Hello3.tcl
+  #% 1
+combat::ir add $_ir_Hello3
+  #% 
+	# tego zapomnieli w dokumentacji ???
+	# ladujemy dane do Interf. Rep.
+	# "combat::ir add ..." jest niezbedne !
+
+
+set obj [HelloWorld #auto]
+  #% helloWorld0
+	# tworzymy obiekt (servant-a)
+puts "obj=$obj"
+  #% 
+
+### POA -------------------------------------------------------
+
+set poa [corba::resolve_initial_references "RootPOA"]
+set mgr [$poa the_POAManager]
+
+#set mypoa [$poa create_POA MyPOA $mgr {RETAIN USER_ID}]
+
+#set oid [$poa activate_object $obj]
+#set ref [$poa id_to_reference $oid]
+
+set ref [$poa servant_to_reference $obj]
+	# tez dziala! (z pominieciem oid)
+	# prawdopodobnie "$poa activate_object $obj" tez by zadzialalo
+
+puts "poa=$poa"
+puts "ref=$ref"
+
+set ior [corba::object_to_string $ref]
+	# ref i oid to nie to samo !!!
+puts "HelloWorld IOR = $ior"
+set f [open {Hello_Java/Hello.IOR} "w"];
+  #% file6
+puts $f $ior; close $f
+  #% 
+
+$mgr activate
+  #% 
+  
+Zadanie 20 ---------------------
+1. -----------------------------
+Modyfikacja Hello3.idl2tcl:
+Hello nowyObiekt();
+
+Dodanie do HelloWorld:
+public method nowyObiekt {} {
+    global poa
+    set obj [HelloWorld ::#auto]
+    set ref [$poa servant_to_reference $obj]
+    return $ref
+}
+#
+# This file was automatically generated from /tmp/pzr_idl2tcl_31659.idl
+# by idl2tcl. Do not edit.
+#
+
+set _ir_Hello3 \
+{{module {IDL:HelloApp2:1.0 HelloApp2 1.0} {{interface\
+{IDL:HelloApp2/wyw:1.0 wyw 1.0} {} {{operation\
+{IDL:HelloApp2/wyw/metoda:1.0 metoda 1.0} string {} {}}}} {interface\
+{IDL:HelloApp2/Hello:1.0 Hello 1.0} {} {{operation\
+{IDL:HelloApp2/Hello/sayHello:1.0 sayHello 1.0} string {} {}} {operation\
+{IDL:HelloApp2/Hello/sayHello2:1.0 sayHello2 1.0} string {{in we string}} {}}\
+{operation {IDL:HelloApp2/Hello/podajLiczbe:1.0 podajLiczbe 1.0} long {} {}}\
+{operation {IDL:HelloApp2/Hello/sayHello_nowyObiekt:1.0 sayHello_nowyObiekt\
+1.0} IDL:HelloApp2/Hello:1.0 {} {}} {typedef {IDL:HelloApp2/Hello/tab:1.0 tab\
+1.0} {array long 10}} {operation {IDL:HelloApp2/Hello/wektorRazy2:1.0\
+wektorRazy2 1.0} void {{in tab1 IDL:HelloApp2/Hello/tab:1.0} {out tab2\
+IDL:HelloApp2/Hello/tab:1.0}} {}} {operation\
+{IDL:HelloApp2/Hello/uruchomZwrotnaMet:1.0 uruchomZwrotnaMet 1.0} void {{in\
+ref IDL:HelloApp2/wyw:1.0}} {}} {operation\
+{IDL:HelloApp2/Hello/nowyObiekt:1.0 nowyObiekt 1.0} IDL:HelloApp2/Hello:1.0\
+{} {}}}}}}}
+
+#
+# This is just to clear the interp from the ridiculously long string above
+#
+
+expr 1
+
+Klient:
+$m podajLiczbe
+  #% 3
+  #% 2
+  #% 1
+  #% 0
+
+set m2 [$m nowyObiekt]
+  #% _combat_obj_2
+
+$m2 podajLiczbe
+  #% 2
+  #% 1
+  #% 0
+  
+2. -----------------------------
+Dodanie metody do Hello3.idl:
+void nowaMetoda();
+
+#
+# This file was automatically generated from /tmp/pzr_idl2tcl_714.idl
+# by idl2tcl. Do not edit.
+#
+
+set _ir_Hello3 \
+{{module {IDL:HelloApp2:1.0 HelloApp2 1.0} {{interface\
+{IDL:HelloApp2/wyw:1.0 wyw 1.0} {} {{operation\
+{IDL:HelloApp2/wyw/metoda:1.0 metoda 1.0} string {} {}}}} {interface\
+{IDL:HelloApp2/Hello:1.0 Hello 1.0} {} {{operation\
+{IDL:HelloApp2/Hello/sayHello:1.0 sayHello 1.0} string {} {}} {operation\
+{IDL:HelloApp2/Hello/sayHello2:1.0 sayHello2 1.0} string {{in we string}} {}}\
+{operation {IDL:HelloApp2/Hello/podajLiczbe:1.0 podajLiczbe 1.0} long {} {}}\
+{operation {IDL:HelloApp2/Hello/sayHello_nowyObiekt:1.0 sayHello_nowyObiekt\
+1.0} IDL:HelloApp2/Hello:1.0 {} {}} {typedef {IDL:HelloApp2/Hello/tab:1.0 tab\
+1.0} {array long 10}} {operation {IDL:HelloApp2/Hello/wektorRazy2:1.0\
+wektorRazy2 1.0} void {{in tab1 IDL:HelloApp2/Hello/tab:1.0} {out tab2\
+IDL:HelloApp2/Hello/tab:1.0}} {}} {operation\
+{IDL:HelloApp2/Hello/uruchomZwrotnaMet:1.0 uruchomZwrotnaMet 1.0} void {{in\
+ref IDL:HelloApp2/wyw:1.0}} {}} {operation\
+{IDL:HelloApp2/Hello/nowyObiekt:1.0 nowyObiekt 1.0} IDL:HelloApp2/Hello:1.0\
+{} {}} {operation {IDL:HelloApp2/Hello/nowaMetoda:1.0 nowaMetoda 1.0}\
+void {} {}}}}}}}
+
+#
+# This is just to clear the interp from the ridiculously long string above
+#
+
+expr 1
+
+Dodanie do serwera:
+public method nowaMetoda {} {
+    for {set i 0} {$i < 5} {incr i} {
+      puts "$i sekunda"
+      after 1000
+    }
+  }
+  
+../tclkit combat_ser21.tcl 
+obj=helloWorld0
+poa=::Combat::PortableServer::rootPOA0
+ref=_combat_obj_1
+HelloWorld IOR = IOR:01666f6f1800000049444c3a48656c6c6f417070322f48656c6c6f3a312e3000020000000000000040000000010102661a00000070633032682e6c6162732e776d692e616d752e6564752e706c0058d7120000002f313338353338353831362f333338382a31666f00000000010000002400000001666f6f01000000010000001400000001666f6f01000105000000000901010000000000
+0 sekunda
+1 sekunda
+2 sekunda
+3 sekunda
+4 sekunda 
+0 sekunda 
+1 sekunda
+2 sekunda
+3 sekunda
+4 sekunda
+
+Klient:
+set m [corba::string_to_object $ior]
+  #% _combat_obj_1
+$m nowaMetoda
+
+set m2 [$m nowyObiekt]
+  #% _combat_obj_2
+$m2 nowaMetoda
+  #% 
+  
+3. -----------------------------
+Modyfikacja Hello3.idl:
+void callback(in wyw o);
+
+Serwer:
+public method callback {obj} {
+    $obj metoda
+  }
+  
+#
+# This file was automatically generated from /tmp/pzr_idl2tcl_2364.idl
+# by idl2tcl. Do not edit.
+#
+
+set _ir_Hello3 \
+{{module {IDL:HelloApp2:1.0 HelloApp2 1.0} {{interface\
+{IDL:HelloApp2/wyw:1.0 wyw 1.0} {} {{operation\
+{IDL:HelloApp2/wyw/metoda:1.0 metoda 1.0} string {} {}}}} {interface\
+{IDL:HelloApp2/Hello:1.0 Hello 1.0} {} {{operation\
+{IDL:HelloApp2/Hello/sayHello:1.0 sayHello 1.0} string {} {}} {operation\
+{IDL:HelloApp2/Hello/sayHello2:1.0 sayHello2 1.0} string {{in we string}} {}}\
+{operation {IDL:HelloApp2/Hello/podajLiczbe:1.0 podajLiczbe 1.0} long {} {}}\
+{operation {IDL:HelloApp2/Hello/sayHello_nowyObiekt:1.0 sayHello_nowyObiekt\
+1.0} IDL:HelloApp2/Hello:1.0 {} {}} {typedef {IDL:HelloApp2/Hello/tab:1.0 tab\
+1.0} {array long 10}} {operation {IDL:HelloApp2/Hello/wektorRazy2:1.0\
+wektorRazy2 1.0} void {{in tab1 IDL:HelloApp2/Hello/tab:1.0} {out tab2\
+IDL:HelloApp2/Hello/tab:1.0}} {}} {operation\
+{IDL:HelloApp2/Hello/uruchomZwrotnaMet:1.0 uruchomZwrotnaMet 1.0} void {{in\
+ref IDL:HelloApp2/wyw:1.0}} {}} {operation\
+{IDL:HelloApp2/Hello/nowyObiekt:1.0 nowyObiekt 1.0} IDL:HelloApp2/Hello:1.0\
+{} {}} {operation {IDL:HelloApp2/Hello/powolnaMetoda:1.0 powolnaMetoda 1.0}\
+void {} {}} {operation {IDL:HelloApp2/Hello/callback:1.0 callback 1.0} void\
+{{in o IDL:HelloApp2/wyw:1.0}} {}}}}}}}
+
+#
+# This is just to clear the interp from the ridiculously long string above
+#
+
+expr 1
+
+Klient:
+$m callback $ref
+
+Serwer:
+../tclkit combat_ser21.tcl 
+obj=helloWorld0
+poa=::Combat::PortableServer::rootPOA0
+ref=_combat_obj_1
+HelloWorld IOR = IOR:01666f6f1800000049444c3a48656c6c6f417070322f48656c6c6f3a312e3000020000000000000040000000010102661a00000070633032682e6c6162732e776d692e616d752e6564752e706c0020eb120000002f313338353338363537352f333534372a31666f00000000010000002400000001666f6f01000000010000001400000001666f6f01000105000000000901010000000000
+
+Konsola:
+../tclkit ../konsola2c.tcl 
+ref=_combat_obj_2
+ref2=_combat_obj_3
+WywolanieZwrotne, metoda (0)
+
+Zadanie 25 ---------------------
+lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/C/tclkit/lib/tcl8.4 /home/students/s396463/TAS/C/tclkit/lib /home/students/s396463/TAS/C/tclkit/lib/tk8.4 combat-tcl-0.7.4
+package require combat
+  #% 0.7
+
+corba::init
+  #% 
+
+source z25/COS_ns.tcl
+  #% 1
+combat::ir add $_ir_COS_ns
+  #% 
+
+set ns [corba::string_to_object http://mhanckow.students.wmi.amu.edu.pl/pliki/nsd.ior]
+  #% _combat_obj_1
+
+$ns list 10 x y; join $x \n
+  #% binding_name {{id EventChannelFactory kind {}}} binding_type nobject
+binding_name {{id PropertySetDefFactory kind {}}} binding_type nobject
+binding_name {{id PropertySetFactory kind {}}} binding_type nobject
+binding_name {{id ob_mhanckow kind {}}} binding_type nobject
+binding_name {{id qwe kind {}}} binding_type nobject
+binding_name {{id sample kind {}}} binding_type ncontext
+
+source z25/Hello3.tcl
+  #% 1
+combat::ir add $_ir_Hello3
+  #% 
+
+class WywolanieZwrotne {
+  inherit PortableServer::ServantBase
+  public method _Interface {} {
+    return "IDL:HelloApp2/wyw:1.0"
+  }
+  public method metoda {} {
+    puts "WywolanieZwrotne, metoda ($licz)"; incr licz
+    
+    # to dziala ok ...
+    #set poac [corba::resolve_initial_references "POACurrent"]
+    #puts "get_object_id=[$poac get_object_id]"
+  }
+  private variable licz 0
+}
+set obj [WywolanieZwrotne #auto]
+  #% wywolanieZwrotne2
+set poa [corba::resolve_initial_references "RootPOA"]
+  #% ::Combat::PortableServer::rootPOA0
+set mgr [$poa the_POAManager]
+  #% ::Combat::PortableServer::POA::pOAManager0
+set ref [$poa servant_to_reference $obj]
+  #% _combat_obj_5
+
+$ns to_name "qwe"
+  #% {id qwe kind {}}
+
+$ns rebind [$ns to_name "qwe"] $ref
+
+$ns bind_new_context [$ns to_name sample] 
+  #% _combat_obj_7
+
+$ns resolve [$ns to_name "sample/qwe"]
+  #% _combat_obj_8
+
+set ns2 [$ns resolve [$ns to_name sample]]
+  #% _combat_obj_9
+
+$ns2 list 10 x y; join $x \n
+  #% binding_name {{id qwe kind {}}} binding_type nobject
+ 
+Zadanie 27 ---------------------
+Klient:
+ lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/C/tclkit/lib/tcl8.4 /home/students/s396463/TAS/C/tclkit/lib /home/students/s396463/TAS/C/tclkit/lib/tk8.4 ../combat-tcl-0.7.4 combat-tcl-0.7.4
+package require combat
+  #% 0.7
+
+corba::init
+  #% 
+
+set m [corba::string_to_object http://mhanckow.students.wmi.amu.edu.pl/pliki/Hello.IOR]
+  #% _combat_obj_1
+
+$m podajLiczbe
+  #% 3
+  #% 2
+  #% 1
+  #% 0
+  
+Zadanie 32 ---------------------
+pojemnik.idl
+module xxx1
+{
+    interface Pojemnik {
+      attribute wstring wartosc;
+    };
+    valuetype Pojemnik2 {
+      public wstring wartosc;
+      private wstring wartosc2;
+      void nic(); // bez "public"!
+    };
+    interface FabrykaPojemnikow {
+      Pojemnik utworz();
+      Pojemnik2 utworz2(); // test przekazywania VT ser->kli
+      string odbierz(in Pojemnik2 par); // test przekazywania VT kli->ser
+    };
+
+};
+
+idlj pojemnik.idl
+Pojemnik2Impl.java	
+package xxx1;
+public class Pojemnik2Impl extends Pojemnik2 {
+	public void nic(){}
+}
+
+
+server.java
+import xxx1.*;
+import org.omg.CORBA.*;
+import org.omg.PortableServer.*;
+import org.omg.CosNaming.*;
+import org.omg.CosNaming.NamingContextPackage.*;
+import java.io.*;
+public class Server {
+
+    public static void main(String args[])
+    {
+        try{
+            ORB orb = ORB.init(args, null);
+	    
+	    	POA rootpoa= POAHelper.narrow(
+	      	orb.resolve_initial_references("RootPOA"));
+            rootpoa.the_POAManager().activate();	      
+	    
+			FabrykaPojemnikowServant serv = new FabrykaPojemnikowServant(orb, rootpoa);
+
+	    	org.omg.CORBA.Object ref= rootpoa.servant_to_reference(serv);
+
+            String IOR= orb.object_to_string(ref);
+            System.out.println("IOR="+IOR);
+            PrintWriter out= new PrintWriter(new BufferedWriter(new FileWriter("FabrykaPojemnikow.IOR")));
+            out.println(IOR); out.close();
+
+            System.out.println("orb.run();");
+            orb.run();
+	   		System.out.println("orb.run(); - koniec");
+        } catch (Exception e) {
+            System.err.println("ERROR: " + e);
+            e.printStackTrace(System.out);
+        }
+    }
+}
+
+PojemnikServant.java:
+import xxx1.*;
+
+import org.omg.CORBA.*;
+import org.omg.PortableServer.*;
+import org.omg.CosNaming.*;
+import org.omg.CosNaming.NamingContextPackage.*;
+
+import java.io.*;
+
+public class PojemnikServant extends PojemnikPOA{
+	private String _wartosc;
+	
+	public String wartosc() {
+		return _wartosc;
+	}
+
+	public void wartosc(String newWartosc){
+		this._wartosc = newWartosc;
+	}
+}
+
+FabrykaPojemnikowServant:
+import xxx1.*;
+
+import org.omg.CORBA.*;
+import org.omg.PortableServer.*;
+import org.omg.CosNaming.*;
+import org.omg.CosNaming.NamingContextPackage.*;
+
+import java.io.*;
+
+public class FabrykaPojemnikowServant extends FabrykaPojemnikowPOA
+{
+    private int licz;
+    private String str;
+    private ORB orb;
+	private POA poa;
+
+    FabrykaPojemnikowServant(ORB _orb, POA _poa)
+    {
+        super();
+        orb = _orb;
+		poa = _poa;
+    }
+
+	public xxx1.Pojemnik utworz(){
+		xxx1.Pojemnik x = null;
+		try{
+			PojemnikServant pojemnik = new PojemnikServant();
+			x =  (xxx1.Pojemnik) poa.servant_to_reference(pojemnik);
+		} catch (Exception e) {
+            System.err.println("ERROR: " + e);
+            e.printStackTrace(System.out);
+        }
+		return x;s39
+	}
+
+	public xxx1.Pojemnik2 utworz2(){
+		xxx1.Pojemnik2Impl pojemnik = new xxx1.Pojemnik2Impl();
+		return pojemnik;
+	}
+
+  	public String odbierz (xxx1.Pojemnik2 par){
+		return "Wartosc: "+par.wartosc;
+	}
+}
+
+Zadanie 33 ---------------------
+lappend auto_path combat-tcl-0.7.4
+  #% /home/students/s396463/TAS/C/tclkit/lib/tcl8.4 /home/students/s396463/TAS/C/tclkit/lib /home/students/s396463/TAS/C/tclkit/lib/tk8.4 combat-tcl-0.7.4
+package re combat
+  #% 0.7
+
+set m [corba::string_to_object http://mhanckow.students.wmi.amu.edu.pl/pliki/Hello.ior]
+  #% _combat_obj_1
+
+$m sayHello
+  #% Jak sie masz ??? (5)
+
+
+set ir [$m _get_interface]
+  #% _combat_obj_3
+$ir _is_a IDL:omg.org/CORBA/InterfaceDef:1.0
+  #% 1
+
+source z33/corba_ir.tcl
+  #% 1
+
+combat::ir add $_ir_corba_ir
+  #% 
+$ir describe
+  #% kind dk_Interface value {{struct IDL:omg.org/CORBA/InterfaceDescription:1.0 {name string id string defined_in string version string base_interfaces {sequence string}}} {name Hello id IDL:HelloApp/Hello:1.0 defined_in IDL:HelloApp:1.0 version 1.0 base_interfaces {}}}
+
+set x [$ir contents dk_Operation 1]
+  #% _combat_obj_5
+
+$x describe
+  #% kind dk_Operation value {{struct IDL:omg.org/CORBA/OperationDescription:1.0 {name string id string defined_in string version string result TypeCode mode {enum {OP_NORMAL OP_ONEWAY}} contexts {sequence string} parameters {sequence {struct IDL:omg.org/CORBA/ParameterDescription:1.0 {name string type TypeCode type_def {Object IDL:omg.org/CORBA/IDLType:1.0} mode {enum {PARAM_IN PARAM_OUT PARAM_INOUT}}}}} exceptions {sequence {struct IDL:omg.org/CORBA/ExceptionDescription:1.0 {name string id string defined_in string version string type TypeCode}}}}} {name sayHello id IDL:HelloApp/Hello/sayHello:1.0 defined_in IDL:HelloApp/Hello:1.0 version 1.0 result string mode OP_NORMAL contexts {} parameters {} exceptions {}}}
+
+lindex [$ir describe] 3 1
+  #% name Hello id IDL:HelloApp/Hello:1.0 defined_in IDL:HelloApp:1.0 version 1.0 base_interfaces {}}

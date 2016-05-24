@@ -1,0 +1,3576 @@
+przedmiot TAS temat B nr_indeksu 396295 liczba_pkt 3 
+
+
+
+Zadanie 10.-------------------------------------------------------------
+	Podpunkt 1.
+	Wydruk:
+	sss: powolnaMetoda(); licznik=23 watek = Thread[RMI TCP Connection(4)-169.254.107.243,5,RMI Runtime]
+	sss: powolnaMetoda(); licznik=24 watek = Thread[RMI TCP Connection(3)-169.254.107.243,5,RMI Runtime]
+	sss: powolnaMetoda(); licznik=25 watek = Thread[RMI TCP Connection(4)-169.254.107.243,5,RMI Runtime]
+	sss: powolnaMetoda(); licznik=26 watek = Thread[RMI TCP Connection(3)-169.254.107.243,5,RMI Runtime]
+	sss: powolnaMetoda(); licznik=27 watek = Thread[RMI TCP Connection(4)-169.254.107.243,5,RMI Runtime]
+	sss: powolnaMetoda(); licznik=28 watek = Thread[RMI TCP Connection(3)-169.254.107.243,5,RMI Runtime]
+	
+	Kod serwera:
+	/*
+	eksperymenty z RMI (serwer)
+	*/
+
+	import java.rmi.*;
+	import java.rmi.registry.*;
+	import java.rmi.server.*;
+	import java.io.*;
+
+	class OdleglaKlasa
+	implements OdleglyObiekt, Serializable
+	{
+	  OdleglaKlasa(String s) throws RemoteException
+	  {
+		super();
+		try {
+		  UnicastRemoteObject.exportObject(this);
+			// tu decydujemy ze obiekt bedzie "zdalny"
+			// exportObject() musi byc PRZED rebind() !!!
+		  Naming.rebind(s,this);
+			// rejestruje sie w Naming Service (= rmiregistry)
+		} catch(Exception e) {
+		  System.err.println("sss: OdleglaKlasa(String); blad !!! "+e.getMessage());
+		}
+
+		// tworzymy drugi obiekty ...
+		drugiObiekt= new OdleglaKlasa();
+		UnicastRemoteObject.exportObject(drugiObiekt);
+		  // tu decydujemy ze drugi obiekt bedzie "odlegly"
+
+		System.out.println("sss: OdleglaKlasa(String); ok");
+	  }
+	  OdleglaKlasa() throws RemoteException
+	  {
+		super();
+		System.out.println("sss: OdleglaKlasa(); ok");
+	  }
+
+	  // -------- implementacja interf OdleglyObiekt ----------
+
+	  private OdleglyObiekt drugiObiekt;
+	  public OdleglyObiekt drugiObiekt() throws RemoteException
+	  {
+		return drugiObiekt;
+	  }
+
+	  int licznik=0;
+	  public int powolnaMetoda() throws RemoteException
+	  {
+		
+		
+		for (int i = 0; i < 20; i++){
+			licznik++;
+			System.out.println("sss: powolnaMetoda(); licznik="+licznik+ " watek = "+(Thread.currentThread()));
+			try {Thread.sleep(200);} catch(Exception e){};
+		}
+		System.out.println("sss: powolnaMetoda(); koniec dzialania !");
+		return licznik;
+	  }
+
+	  // ------------------------------------------------------
+	}
+
+	public class sss
+	{
+	  public static void main(String args[])
+	  {
+		//System.setSecurityManager(new RMISecurityManager());
+
+		try {
+		  System.out.println("sss: zaczynam tworzyc obiekty ...");
+		  OdleglyObiekt oo= new OdleglaKlasa("przyklad_rmi4");
+		  System.out.println("sss: obiekty utworzone !!!");
+		} catch(Exception e) {
+		  System.err.println("sss: blad !!! "+e.getMessage());
+		}
+	  }
+	}
+	
+	Podpunkt 2.
+	Kiedy obiekt nie jest eksportowany komunikat jest po stronie klienta.
+	Wydruk (z klienta):
+		J:\Desktop\TAS\B\KLIENT>java kkk
+		Picked up _JAVA_OPTIONS: -Duser.home=J:\
+		kkk: oo.powolnaMetoda()=2
+		sss: powolnaMetoda(); licznik=1 watek = Thread[main,5,main]
+		sss: powolnaMetoda(); koniec dzialania !
+		kkk: oo2.powolnaMetoda()=1
+		sss: powolnaMetoda(); licznik=2 watek = Thread[main,5,main]
+		sss: powolnaMetoda(); koniec dzialania !
+		kkk: oo2.powolnaMetoda()=2
+		
+
+	Kod serwera:
+	/*
+	eksperymenty z RMI (serwer)
+	*/
+
+	import java.rmi.*;
+	import java.rmi.registry.*;
+	import java.rmi.server.*;
+	import java.io.*;
+
+	class OdleglaKlasa
+	implements OdleglyObiekt, Serializable
+	{
+	  OdleglaKlasa(String s) throws RemoteException
+	  {
+		super();
+		try {
+		  UnicastRemoteObject.exportObject(this);
+			// tu decydujemy ze obiekt bedzie "zdalny"
+			// exportObject() musi byc PRZED rebind() !!!
+		  Naming.rebind(s,this);
+			// rejestruje sie w Naming Service (= rmiregistry)
+		} catch(Exception e) {
+		  System.err.println("sss: OdleglaKlasa(String); blad !!! "+e.getMessage());
+		}
+
+		// tworzymy drugi obiekty ...
+		drugiObiekt= new OdleglaKlasa();
+		//UnicastRemoteObject.exportObject(drugiObiekt);
+		  // tu decydujemy ze drugi obiekt bedzie "odlegly"
+
+		System.out.println("sss: OdleglaKlasa(String); ok");
+	  }
+	  OdleglaKlasa() throws RemoteException
+	  {
+		super();
+		System.out.println("sss: OdleglaKlasa(); ok");
+	  }
+
+	  // -------- implementacja interf OdleglyObiekt ----------
+
+	  private OdleglyObiekt drugiObiekt;
+	  public OdleglyObiekt drugiObiekt() throws RemoteException
+	  {
+		return drugiObiekt;
+	  }
+
+	  int licznik=0;
+	  public int powolnaMetoda() throws RemoteException
+	  {
+		
+		
+		// for (int i = 0; i < 20; i++){
+			licznik++;
+			System.out.println("sss: powolnaMetoda(); licznik="+licznik+ " watek = "+(Thread.currentThread()));
+			try {Thread.sleep(200);} catch(Exception e){};
+		// }
+		System.out.println("sss: powolnaMetoda(); koniec dzialania !");
+		return licznik;
+	  }
+
+	  // ------------------------------------------------------
+	}
+
+	public class sss
+	{
+	  public static void main(String args[])
+	  {
+		//System.setSecurityManager(new RMISecurityManager());
+
+		try {
+		  System.out.println("sss: zaczynam tworzyc obiekty ...");
+		  OdleglyObiekt oo= new OdleglaKlasa("przyklad_rmi4");
+		  System.out.println("sss: obiekty utworzone !!!");
+		} catch(Exception e) {
+		  System.err.println("sss: blad !!! "+e.getMessage());
+		}
+	  }
+	}
+
+	Podpunkt 3.
+	Wydruk z klienta:
+	kkk: blad !!! RemoteException occurred in server thread; nested exception is:
+        java.rmi.RemoteException: sztucznie wygenerowany blad ...
+		
+	Serwer dziala dalej normalnie.
+	
+	
+	Kod klienta:
+		
+	/*
+	eksperymenty z RMI (klient)
+	*/
+
+	import java.rmi.*;
+	import java.rmi.registry.*;
+
+	public class kkk
+	{
+	  public static void main(String args[])
+	  {
+		//System.setSecurityManager(new RMISe;
+		  System.out.println("kkk: oo2.powolnaMetoda()=curityManager());
+
+		try {
+		  OdleglyObiekt oo = (OdleglyObiekt)Naming.lookup(
+			"rmi://localhost/przyklad_rmi4");
+
+		  System.out.println("kkk: oo.powolnaMetoda()="+oo.powolnaMetoda());
+
+		  OdleglyObiekt oo2=oo.drugiObiekt();
+		  System.out.println("kkk: oo2.powolnaMetoda()="+oo2.powolnaMetoda())"+oo2.powolnaMetoda());
+		  oo.generujeBlad();
+
+		} catch(Exception e) {
+		  System.err.println("kkk: blad !!! "+e.getMessage());
+		}
+	  }
+	}
+
+	Do serwera dodane:
+	public void generujeBlad() throws RemoteException
+	{
+		throw new RemoteException("sztucznie wygenerowany blad ...");
+	}
+	
+	
+	Interfejs:
+		
+	/*
+	eksperymenty z RMI (def zdalnego interfejsu)
+	*/
+
+	import java.rmi.*;
+
+	public interface OdleglyObiekt extends Remote
+	{
+	  OdleglyObiekt drugiObiekt() throws RemoteException;
+	  int powolnaMetoda() throws RemoteException;
+	  public void generujeBlad() throws RemoteException;
+	}
+Zadanie 11. --------------------------------------------------------------------------------------------------------------------------------
+
+SERWER =====================================================
+
+sss.java:
+
+import java.rmi.*;
+import java.rmi.registry.*;
+import java.rmi.server.*;
+import java.io.*;
+
+public class sss {
+	public static void main(String args[]) {
+		try {
+			FactoryClass obj = new FactoryClass();
+			UnicastRemoteObject.exportObject(obj);
+			Naming.rebind("factory", obj);
+		} catch(Exception e) {
+			System.err.println("sss: blad !!! " + e.getMessage());
+		}
+	}
+}
+
+///////////////////////////////////////
+BufferClass.java:
+
+import java.rmi.*;
+import java.io.*;
+
+public class BufferClass implements BufferInterface, Serializable {
+	int[] array1 = new int[50];
+	int tail1 = 0;
+	int head1 = 0;
+	int size1 = 0;
+	public synchronized void push(int element) throws RemoteException {
+		try {
+			while (size1 == array1.length) {
+				wait();
+			}
+			notifyAll();
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+		array1[tail1] = element;
+		tail1 = (tail1 + 1) % array1.length; 
+		size1++;
+		System.out.println("pushed element: " + element);
+	}
+	public synchronized int pop() throws RemoteException {
+		try {
+			while (size1==0) {
+				wait();
+			}
+		notifyAll();
+		}
+		catch(InterruptedException e){
+			e.printStackTrace();
+		}
+		int temp = array1[head1];
+		head1 = (head1 + 1) % array1.length;
+		size1--;
+		return temp;
+	}
+}
+
+///////////////////////////////////////
+
+BufferInterface.java:
+
+import java.rmi.*;
+
+public interface BufferInterface extends Remote {
+	public void push(int element) throws RemoteException;
+	public int pop() throws RemoteException;
+}
+
+//////////////////////////////////////
+
+FactoryClass.java:
+
+import java.rmi.*;
+import java.io.*;
+
+public class FactoryClass implements FactoryInterface, Serializable {
+	public BufferClass newBuffer() throws RemoteException {
+		BufferClass buffer = new BufferClass();
+		return buffer;
+	}
+}
+/////////////////////////////////////
+
+FactoryInterface.java:
+
+import java.rmi.*;
+
+public interface FactoryInterface extends Remote {
+	public BufferClass newBuffer() throws RemoteException;
+}
+
+//////////////////////////////////////
+
+KLIENT  ========================================
+
+ProducerInterface.java:
+
+import java.rmi.*;
+
+public interface ProducerInterface {
+    public void run();
+}
+
+///////////////////////////////////////
+
+ConsumerClass.java:
+
+import java.rmi.*;
+
+public class ConsumerClass implements ConsumerInterface, Runnable {
+    private BufferClass buffer;
+    public ConsumerClass(BufferClass b) {
+        this.buffer = b;
+    }
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            try {
+				int temp = buffer.pop();
+				System.out.println("popped element: " + temp);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+//////////////////////////////////////////
+
+ConsumerInterface.java:
+
+import java.rmi.*;
+
+public interface ConsumerInterface {
+    public void run();
+}
+
+////////////////////////////////////////////
+
+kkk.java:
+
+import java.rmi.*;
+import java.rmi.registry.*;
+
+public class kkk {
+	public static void main(String args[]) {
+		try {
+			FactoryInterface obj = (FactoryInterface)Naming.lookup("rmi://localhost/factory");
+			BufferClass buffer = obj.newBuffer();
+			ConsumerClass myConsumer = new ConsumerClass(buffer);
+			ProducerClass myProducer = new ProducerClass(buffer);
+			Thread consumerThread = new Thread(myConsumer);
+			Thread producerThread = new Thread(myProducer);
+			consumerThread.start();
+			producerThread.start();
+		} catch(Exception e) {
+			System.err.println("kkk: blad !!! "+e.getMessage());
+		}
+	}
+}
+
+/////////////////////////////////////////
+
+ProducerClass.java
+
+import java.rmi.*;
+
+public class ProducerClass implements ProducerInterface, Runnable {
+    private BufferClass buffer;
+    public ProducerClass(BufferClass b) {
+        this.buffer = b;
+    }
+    @Override
+    public void run() {
+        for(int i = 0; i < 1000; i++) {
+            try {
+                buffer.push(i + 1);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////
+
+Wydruk:
+
+pushed element: 527
+popped element: 478
+pushed element: 528
+popped element: 479
+pushed element: 529
+popped element: 480
+pushed element: 530
+popped element: 481
+pushed element: 531
+popped element: 482
+pushed element: 532
+popped element: 483
+pushed element: 533
+popped element: 484
+pushed element: 534
+popped element: 485
+pushed element: 535
+popped element: 486
+pushed element: 536
+popped element: 487
+pushed element: 537
+popped element: 488
+pushed element: 538
+popped element: 489
+pushed element: 539
+popped element: 490
+pushed element: 540
+popped element: 491
+pushed element: 541
+popped element: 492
+pushed element: 542
+popped element: 493
+pushed element: 543
+popped element: 494
+pushed element: 544
+popped element: 495
+pushed element: 545
+popped element: 496
+pushed element: 546
+popped element: 497
+pushed element: 547
+popped element: 498
+pushed element: 548
+popped element: 499
+pushed element: 549
+popped element: 500
+pushed element: 550
+popped element: 501
+pushed element: 551
+popped element: 502
+pushed element: 552
+popped element: 503
+pushed element: 553
+popped element: 504
+pushed element: 554
+popped element: 505
+pushed element: 555
+popped element: 506
+pushed element: 556
+popped element: 507
+pushed element: 557
+popped element: 508
+pushed element: 558
+popped element: 509
+pushed element: 559
+popped element: 510
+pushed element: 560
+popped element: 511
+pushed element: 561
+popped element: 512
+pushed element: 562
+popped element: 513
+pushed element: 563
+popped element: 514
+pushed element: 564
+popped element: 515
+pushed element: 565
+popped element: 516
+pushed element: 566
+popped element: 517
+pushed element: 567
+popped element: 518
+pushed element: 568
+popped element: 519
+pushed element: 569
+popped element: 520
+pushed element: 570
+popped element: 521
+pushed element: 571
+popped element: 522
+pushed element: 572
+popped element: 523
+pushed element: 573
+popped element: 524
+pushed element: 574
+popped element: 525
+pushed element: 575
+popped element: 526
+pushed element: 576
+popped element: 527
+pushed element: 577
+popped element: 528
+pushed element: 578
+popped element: 529
+pushed element: 579
+popped element: 530
+pushed element: 580
+popped element: 531
+pushed element: 581
+popped element: 532
+pushed element: 582
+popped element: 533
+pushed element: 583
+popped element: 534
+pushed element: 584
+popped element: 535
+pushed element: 585
+popped element: 536
+pushed element: 586
+popped element: 537
+pushed element: 587
+popped element: 538
+pushed element: 588
+popped element: 539
+pushed element: 589
+popped element: 540
+pushed element: 590
+popped element: 541
+pushed element: 591
+popped element: 542
+pushed element: 592
+popped element: 543
+pushed element: 593
+popped element: 544
+pushed element: 594
+popped element: 545
+pushed element: 595
+popped element: 546
+pushed element: 596
+popped element: 547
+pushed element: 597
+popped element: 548
+pushed element: 598
+popped element: 549
+pushed element: 599
+popped element: 550
+pushed element: 600
+popped element: 551
+pushed element: 601
+popped element: 552
+pushed element: 602
+popped element: 553
+pushed element: 603
+popped element: 554
+pushed element: 604
+popped element: 555
+pushed element: 605
+popped element: 556
+pushed element: 606
+popped element: 557
+pushed element: 607
+popped element: 558
+pushed element: 608
+popped element: 559
+pushed element: 609
+popped element: 560
+pushed element: 610
+popped element: 561
+pushed element: 611
+popped element: 562
+pushed element: 612
+popped element: 563
+pushed element: 613
+popped element: 564
+pushed element: 614
+popped element: 565
+pushed element: 615
+popped element: 566
+pushed element: 616
+popped element: 567
+pushed element: 617
+popped element: 568
+pushed element: 618
+popped element: 569
+pushed element: 619
+popped element: 570
+pushed element: 620
+popped element: 571
+pushed element: 621
+popped element: 572
+pushed element: 622
+popped element: 573
+pushed element: 623
+popped element: 574
+pushed element: 624
+popped element: 575
+pushed element: 625
+popped element: 576
+pushed element: 626
+popped element: 577
+pushed element: 627
+popped element: 578
+pushed element: 628
+popped element: 579
+pushed element: 629
+popped element: 580
+pushed element: 630
+popped element: 581
+pushed element: 631
+popped element: 582
+pushed element: 632
+popped element: 583
+pushed element: 633
+popped element: 584
+pushed element: 634
+popped element: 585
+pushed element: 635
+popped element: 586
+pushed element: 636
+popped element: 587
+pushed element: 637
+popped element: 588
+pushed element: 638
+popped element: 589
+pushed element: 639
+popped element: 590
+pushed element: 640
+popped element: 591
+pushed element: 641
+popped element: 592
+pushed element: 642
+popped element: 593
+pushed element: 643
+popped element: 594
+pushed element: 644
+popped element: 595
+pushed element: 645
+popped element: 596
+pushed element: 646
+popped element: 597
+pushed element: 647
+popped element: 598
+pushed element: 648
+popped element: 599
+pushed element: 649
+popped element: 600
+pushed element: 650
+popped element: 601
+pushed element: 651
+popped element: 602
+pushed element: 652
+popped element: 603
+pushed element: 653
+popped element: 604
+pushed element: 654
+popped element: 605
+pushed element: 655
+popped element: 606
+pushed element: 656
+popped element: 607
+pushed element: 657
+popped element: 608
+pushed element: 658
+popped element: 609
+pushed element: 659
+popped element: 610
+pushed element: 660
+popped element: 611
+pushed element: 661
+popped element: 612
+pushed element: 662
+popped element: 613
+pushed element: 663
+popped element: 614
+pushed element: 664
+popped element: 615
+pushed element: 665
+popped element: 616
+pushed element: 666
+popped element: 617
+pushed element: 667
+popped element: 618
+pushed element: 668
+popped element: 619
+pushed element: 669
+popped element: 620
+pushed element: 670
+popped element: 621
+pushed element: 671
+popped element: 622
+pushed element: 672
+popped element: 623
+pushed element: 673
+popped element: 624
+pushed element: 674
+popped element: 625
+pushed element: 675
+popped element: 626
+pushed element: 676
+popped element: 627
+pushed element: 677
+popped element: 628
+pushed element: 678
+popped element: 629
+pushed element: 679
+popped element: 630
+pushed element: 680
+popped element: 631
+pushed element: 681
+popped element: 632
+pushed element: 682
+popped element: 633
+pushed element: 683
+popped element: 634
+pushed element: 684
+popped element: 635
+pushed element: 685
+popped element: 636
+pushed element: 686
+popped element: 637
+pushed element: 687
+popped element: 638
+pushed element: 688
+popped element: 639
+pushed element: 689
+popped element: 640
+pushed element: 690
+popped element: 641
+pushed element: 691
+popped element: 642
+pushed element: 692
+popped element: 643
+pushed element: 693
+popped element: 644
+pushed element: 694
+popped element: 645
+pushed element: 695
+popped element: 646
+pushed element: 696
+popped element: 647
+pushed element: 697
+popped element: 648
+pushed element: 698
+popped element: 649
+pushed element: 699
+popped element: 650
+pushed element: 700
+popped element: 651
+pushed element: 701
+popped element: 652
+pushed element: 702
+popped element: 653
+pushed element: 703
+popped element: 654
+pushed element: 704
+popped element: 655
+pushed element: 705
+popped element: 656
+pushed element: 706
+popped element: 657
+pushed element: 707
+popped element: 658
+pushed element: 708
+popped element: 659
+pushed element: 709
+popped element: 660
+pushed element: 710
+popped element: 661
+pushed element: 711
+popped element: 662
+pushed element: 712
+popped element: 663
+pushed element: 713
+popped element: 664
+pushed element: 714
+popped element: 665
+pushed element: 715
+popped element: 666
+pushed element: 716
+popped element: 667
+pushed element: 717
+popped element: 668
+pushed element: 718
+popped element: 669
+pushed element: 719
+popped element: 670
+pushed element: 720
+popped element: 671
+pushed element: 721
+popped element: 672
+pushed element: 722
+popped element: 673
+pushed element: 723
+popped element: 674
+pushed element: 724
+popped element: 675
+pushed element: 725
+popped element: 676
+pushed element: 726
+popped element: 677
+pushed element: 727
+popped element: 678
+pushed element: 728
+popped element: 679
+pushed element: 729
+popped element: 680
+pushed element: 730
+popped element: 681
+pushed element: 731
+popped element: 682
+pushed element: 732
+popped element: 683
+pushed element: 733
+popped element: 684
+pushed element: 734
+popped element: 685
+pushed element: 735
+popped element: 686
+pushed element: 736
+popped element: 687
+pushed element: 737
+popped element: 688
+pushed element: 738
+popped element: 689
+pushed element: 739
+popped element: 690
+pushed element: 740
+popped element: 691
+pushed element: 741
+popped element: 692
+pushed element: 742
+popped element: 693
+pushed element: 743
+popped element: 694
+pushed element: 744
+popped element: 695
+pushed element: 745
+popped element: 696
+pushed element: 746
+popped element: 697
+pushed element: 747
+popped element: 698
+pushed element: 748
+popped element: 699
+pushed element: 749
+popped element: 700
+pushed element: 750
+popped element: 701
+pushed element: 751
+popped element: 702
+pushed element: 752
+popped element: 703
+pushed element: 753
+popped element: 704
+pushed element: 754
+popped element: 705
+pushed element: 755
+popped element: 706
+pushed element: 756
+popped element: 707
+pushed element: 757
+popped element: 708
+pushed element: 758
+popped element: 709
+pushed element: 759
+popped element: 710
+pushed element: 760
+popped element: 711
+pushed element: 761
+popped element: 712
+pushed element: 762
+popped element: 713
+pushed element: 763
+popped element: 714
+pushed element: 764
+popped element: 715
+pushed element: 765
+popped element: 716
+pushed element: 766
+popped element: 717
+pushed element: 767
+popped element: 718
+pushed element: 768
+popped element: 719
+pushed element: 769
+popped element: 720
+pushed element: 770
+popped element: 721
+pushed element: 771
+popped element: 722
+pushed element: 772
+popped element: 723
+pushed element: 773
+popped element: 724
+pushed element: 774
+popped element: 725
+pushed element: 775
+pushed element: 776
+popped element: 726
+popped element: 727
+pushed element: 777
+popped element: 728
+pushed element: 778
+popped element: 729
+pushed element: 779
+popped element: 730
+pushed element: 780
+popped element: 731
+pushed element: 781
+popped element: 732
+pushed element: 782
+popped element: 733
+pushed element: 783
+popped element: 734
+pushed element: 784
+popped element: 735
+pushed element: 785
+popped element: 736
+pushed element: 786
+popped element: 737
+pushed element: 787
+popped element: 738
+pushed element: 788
+popped element: 739
+pushed element: 789
+popped element: 740
+pushed element: 790
+popped element: 741
+pushed element: 791
+popped element: 742
+pushed element: 792
+popped element: 743
+pushed element: 793
+popped element: 744
+pushed element: 794
+popped element: 745
+pushed element: 795
+popped element: 746
+pushed element: 796
+popped element: 747
+pushed element: 797
+popped element: 748
+pushed element: 798
+popped element: 749
+pushed element: 799
+popped element: 750
+pushed element: 800
+popped element: 751
+pushed element: 801
+popped element: 752
+pushed element: 802
+popped element: 753
+pushed element: 803
+popped element: 754
+pushed element: 804
+popped element: 755
+pushed element: 805
+popped element: 756
+pushed element: 806
+popped element: 757
+pushed element: 807
+popped element: 758
+pushed element: 808
+popped element: 759
+pushed element: 809
+popped element: 760
+pushed element: 810
+popped element: 761
+pushed element: 811
+popped element: 762
+pushed element: 812
+popped element: 763
+pushed element: 813
+popped element: 764
+pushed element: 814
+popped element: 765
+pushed element: 815
+popped element: 766
+pushed element: 816
+popped element: 767
+pushed element: 817
+popped element: 768
+pushed element: 818
+popped element: 769
+pushed element: 819
+popped element: 770
+pushed element: 820
+popped element: 771
+pushed element: 821
+popped element: 772
+pushed element: 822
+popped element: 773
+pushed element: 823
+popped element: 774
+pushed element: 824
+popped element: 775
+pushed element: 825
+popped element: 776
+pushed element: 826
+popped element: 777
+pushed element: 827
+popped element: 778
+pushed element: 828
+popped element: 779
+pushed element: 829
+popped element: 780
+pushed element: 830
+popped element: 781
+pushed element: 831
+popped element: 782
+pushed element: 832
+popped element: 783
+pushed element: 833
+popped element: 784
+pushed element: 834
+popped element: 785
+pushed element: 835
+popped element: 786
+pushed element: 836
+popped element: 787
+pushed element: 837
+popped element: 788
+pushed element: 838
+popped element: 789
+pushed element: 839
+popped element: 790
+pushed element: 840
+popped element: 791
+pushed element: 841
+popped element: 792
+pushed element: 842
+popped element: 793
+pushed element: 843
+popped element: 794
+pushed element: 844
+popped element: 795
+pushed element: 845
+popped element: 796
+pushed element: 846
+popped element: 797
+pushed element: 847
+popped element: 798
+pushed element: 848
+popped element: 799
+pushed element: 849
+popped element: 800
+pushed element: 850
+popped element: 801
+pushed element: 851
+popped element: 802
+pushed element: 852
+popped element: 803
+pushed element: 853
+popped element: 804
+pushed element: 854
+popped element: 805
+pushed element: 855
+popped element: 806
+pushed element: 856
+popped element: 807
+pushed element: 857
+popped element: 808
+pushed element: 858
+popped element: 809
+pushed element: 859
+popped element: 810
+pushed element: 860
+popped element: 811
+pushed element: 861
+popped element: 812
+pushed element: 862
+popped element: 813
+pushed element: 863
+popped element: 814
+pushed element: 864
+popped element: 815
+pushed element: 865
+popped element: 816
+pushed element: 866
+popped element: 817
+pushed element: 867
+popped element: 818
+pushed element: 868
+popped element: 819
+pushed element: 869
+popped element: 820
+pushed element: 870
+popped element: 821
+pushed element: 871
+popped element: 822
+pushed element: 872
+popped element: 823
+pushed element: 873
+popped element: 824
+pushed element: 874
+popped element: 825
+pushed element: 875
+popped element: 826
+pushed element: 876
+popped element: 827
+pushed element: 877
+popped element: 828
+pushed element: 878
+popped element: 829
+pushed element: 879
+popped element: 830
+pushed element: 880
+popped element: 831
+pushed element: 881
+popped element: 832
+pushed element: 882
+popped element: 833
+pushed element: 883
+popped element: 834
+pushed element: 884
+popped element: 835
+pushed element: 885
+popped element: 836
+pushed element: 886
+popped element: 837
+pushed element: 887
+popped element: 838
+pushed element: 888
+popped element: 839
+pushed element: 889
+popped element: 840
+pushed element: 890
+popped element: 841
+pushed element: 891
+popped element: 842
+pushed element: 892
+popped element: 843
+pushed element: 893
+popped element: 844
+pushed element: 894
+popped element: 845
+pushed element: 895
+popped element: 846
+pushed element: 896
+popped element: 847
+pushed element: 897
+popped element: 848
+pushed element: 898
+popped element: 849
+pushed element: 899
+popped element: 850
+pushed element: 900
+popped element: 851
+pushed element: 901
+popped element: 852
+pushed element: 902
+popped element: 853
+pushed element: 903
+popped element: 854
+pushed element: 904
+popped element: 855
+pushed element: 905
+popped element: 856
+pushed element: 906
+popped element: 857
+pushed element: 907
+popped element: 858
+pushed element: 908
+popped element: 859
+pushed element: 909
+popped element: 860
+pushed element: 910
+popped element: 861
+pushed element: 911
+popped element: 862
+pushed element: 912
+popped element: 863
+pushed element: 913
+popped element: 864
+pushed element: 914
+popped element: 865
+pushed element: 915
+popped element: 866
+pushed element: 916
+popped element: 867
+pushed element: 917
+popped element: 868
+pushed element: 918
+popped element: 869
+pushed element: 919
+popped element: 870
+pushed element: 920
+popped element: 871
+pushed element: 921
+popped element: 872
+pushed element: 922
+popped element: 873
+pushed element: 923
+popped element: 874
+pushed element: 924
+popped element: 875
+pushed element: 925
+popped element: 876
+pushed element: 926
+popped element: 877
+pushed element: 927
+popped element: 878
+pushed element: 928
+popped element: 879
+pushed element: 929
+popped element: 880
+pushed element: 930
+popped element: 881
+pushed element: 931
+popped element: 882
+pushed element: 932
+popped element: 883
+pushed element: 933
+popped element: 884
+pushed element: 934
+popped element: 885
+pushed element: 935
+popped element: 886
+pushed element: 936
+popped element: 887
+pushed element: 937
+popped element: 888
+pushed element: 938
+popped element: 889
+pushed element: 939
+popped element: 890
+pushed element: 940
+popped element: 891
+pushed element: 941
+popped element: 892
+pushed element: 942
+popped element: 893
+pushed element: 943
+popped element: 894
+pushed element: 944
+popped element: 895
+pushed element: 945
+popped element: 896
+pushed element: 946
+popped element: 897
+pushed element: 947
+popped element: 898
+pushed element: 948
+popped element: 899
+pushed element: 949
+popped element: 900
+pushed element: 950
+popped element: 901
+pushed element: 951
+popped element: 902
+pushed element: 952
+popped element: 903
+pushed element: 953
+popped element: 904
+pushed element: 954
+popped element: 905
+pushed element: 955
+popped element: 906
+pushed element: 956
+popped element: 907
+pushed element: 957
+popped element: 908
+pushed element: 958
+popped element: 909
+pushed element: 959
+popped element: 910
+pushed element: 960
+popped element: 911
+pushed element: 961
+popped element: 912
+pushed element: 962
+popped element: 913
+pushed element: 963
+popped element: 914
+pushed element: 964
+popped element: 915
+pushed element: 965
+popped element: 916
+pushed element: 966
+popped element: 917
+pushed element: 967
+popped element: 918
+pushed element: 968
+popped element: 919
+pushed element: 969
+popped element: 920
+pushed element: 970
+popped element: 921
+pushed element: 971
+popped element: 922
+pushed element: 972
+popped element: 923
+pushed element: 973
+popped element: 924
+pushed element: 974
+popped element: 925
+pushed element: 975
+popped element: 926
+pushed element: 976
+popped element: 927
+pushed element: 977
+popped element: 928
+pushed element: 978
+popped element: 929
+pushed element: 979
+popped element: 930
+pushed element: 980
+popped element: 931
+pushed element: 981
+popped element: 932
+pushed element: 982
+popped element: 933
+pushed element: 983
+popped element: 934
+pushed element: 984
+popped element: 935
+pushed element: 985
+popped element: 936
+pushed element: 986
+popped element: 937
+pushed element: 987
+popped element: 938
+pushed element: 988
+popped element: 939
+pushed element: 989
+popped element: 940
+pushed element: 990
+popped element: 941
+pushed element: 991
+popped element: 942
+pushed element: 992
+popped element: 943
+pushed element: 993
+popped element: 944
+pushed element: 994
+popped element: 945
+pushed element: 995
+popped element: 946
+pushed element: 996
+popped element: 947
+pushed element: 997
+popped element: 948
+pushed element: 998
+popped element: 949
+pushed element: 999
+popped element: 950
+pushed element: 1000
+popped element: 951
+popped element: 952
+popped element: 953
+popped element: 954
+popped element: 955
+popped element: 956
+popped element: 957
+popped element: 958
+popped element: 959
+popped element: 960
+popped element: 961
+popped element: 962
+popped element: 963
+popped element: 964
+popped element: 965
+popped element: 966
+popped element: 967
+popped element: 968
+popped element: 969
+popped element: 970
+popped element: 971
+popped element: 972
+popped element: 973
+popped element: 974
+popped element: 975
+popped element: 976
+popped element: 977
+popped element: 978
+popped element: 979
+popped element: 980
+popped element: 981
+popped element: 982
+popped element: 983
+popped element: 984
+popped element: 985
+popped element: 986
+popped element: 987
+popped element: 988
+popped element: 989
+popped element: 990
+popped element: 991
+popped element: 992
+popped element: 993
+popped element: 994
+popped element: 995
+popped element: 996
+popped element: 997
+popped element: 998
+popped element: 999
+popped element: 1000
+
+ZADANIE 12. ---------------------------------------------------------------
+
+sss.java:
+
+import java.rmi.*;
+import java.rmi.registry.*;
+import java.rmi.server.*;
+import java.io.*;
+
+public class sss {
+  public static void main(String args[]) {
+    try {
+        String name = "factory";
+        FactoryClass object = new FactoryClass();
+        UnicastRemoteObject.exportObject(object);
+		Naming.rebind(name, object);
+    } catch(Exception e) {
+		System.err.println("sss: blad !!! "+e.getMessage());
+    }
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////
+
+BufferInterface.java:
+
+import java.rmi.*;
+
+public interface BufferInterface extends Remote {
+	public void push(int elem) throws RemoteException;
+	public int pop() throws RemoteException;
+}
+
+
+////////////////////////////////////////////////////////////////
+
+cons.java:
+
+import java.rmi.*;
+import java.rmi.registry.*;
+
+public class cons{
+	public static void main(String args[]) {
+        try{            
+            BufferInterface buffer = (BufferInterface)Naming.lookup("rmi://localhost/nametest");
+            for(int i=0; i < 1000; i++) {
+				System.out.println("popped: "+buffer.pop());
+			}
+        } catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+}
+
+///////////////////////////////////////////////////////////////////////
+
+FactoryClass.java:
+
+import java.rmi.*;
+import java.io.*;
+import java.rmi.registry.*;
+import java.rmi.server.*;
+
+public class FactoryClass implements FactoryInterface, Serializable {
+	public BufferClass newBuffer() throws RemoteException {
+		BufferClass buff = new BufferClass();
+		return buff;
+	}
+	public void newNamedBuffer(String name) throws RemoteException {
+		BufferClass buff = new BufferClass();
+		try{
+			UnicastRemoteObject.exportObject(buff);
+			Naming.rebind(name, buff);
+		} catch(Exception e) {
+			System.err.println("sss: blad !!! " + e.getMessage());
+		}
+	}
+
+}
+/////////////////////////////////////////////////////////////////////
+
+FactoryInterface.java:
+
+import java.rmi.*;
+
+public interface FactoryInterface extends Remote {
+	public BufferClass newBuffer() throws RemoteException;
+	public void newNamedBuffer(String name) throws RemoteException;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+kkk.java:
+
+import java.rmi.*;
+import java.rmi.registry.*;
+
+public class kkk {
+	public static void main(String args[]) {
+		try {
+			FactoryInterface obj = (FactoryInterface)Naming.lookup("rmi://localhost/factory");
+			obj.newNamedBuffer("nametest");
+		} catch(Exception e) {
+			System.err.println("kkk: blad !!! " + e.getMessage());
+		}
+	}
+}
+////////////////////////////////////////////////////////////////////////////////
+
+prod.java:
+
+import java.rmi.*;
+
+public class prod {
+    public static void main(String args[]) {
+        try{
+            BufferInterface buffer = (BufferInterface)Naming.lookup("rmi://localhost/nametest");
+            for(int i = 1; i <= 1000; i++) {
+				buffer.push(i);
+				System.out.println("pushed: " + i);
+			}
+        } catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////
+
+Wydruk prod:
+
+pushed: 4
+pushed: 5
+pushed: 6
+pushed: 7
+pushed: 8
+pushed: 9
+pushed: 10
+pushed: 11
+pushed: 12
+pushed: 13
+pushed: 14
+pushed: 15
+pushed: 16
+pushed: 17
+pushed: 18
+pushed: 19
+pushed: 20
+pushed: 21
+pushed: 22
+pushed: 23
+pushed: 24
+pushed: 25
+pushed: 26
+pushed: 27
+pushed: 28
+pushed: 29
+pushed: 30
+pushed: 31
+pushed: 32
+pushed: 33
+pushed: 34
+pushed: 35
+pushed: 36
+pushed: 37
+pushed: 38
+pushed: 39
+pushed: 40
+pushed: 41
+pushed: 42
+pushed: 43
+pushed: 44
+pushed: 45
+pushed: 46
+pushed: 47
+pushed: 48
+pushed: 49
+pushed: 50
+pushed: 51
+pushed: 52
+pushed: 53
+pushed: 54
+pushed: 55
+pushed: 56
+pushed: 57
+pushed: 58
+pushed: 59
+pushed: 60
+pushed: 61
+pushed: 62
+pushed: 63
+pushed: 64
+pushed: 65
+pushed: 66
+pushed: 67
+pushed: 68
+pushed: 69
+pushed: 70
+pushed: 71
+pushed: 72
+pushed: 73
+pushed: 74
+pushed: 75
+pushed: 76
+pushed: 77
+pushed: 78
+pushed: 79
+pushed: 80
+pushed: 81
+pushed: 82
+pushed: 83
+pushed: 84
+pushed: 85
+pushed: 86
+pushed: 87
+pushed: 88
+pushed: 89
+pushed: 90
+pushed: 91
+pushed: 92
+pushed: 93
+pushed: 94
+pushed: 95
+pushed: 96
+pushed: 97
+pushed: 98
+pushed: 99
+pushed: 100
+pushed: 101
+pushed: 102
+pushed: 103
+pushed: 104
+pushed: 105
+pushed: 106
+pushed: 107
+pushed: 108
+pushed: 109
+pushed: 110
+pushed: 111
+pushed: 112
+pushed: 113
+pushed: 114
+pushed: 115
+pushed: 116
+pushed: 117
+pushed: 118
+pushed: 119
+pushed: 120
+pushed: 121
+pushed: 122
+pushed: 123
+pushed: 124
+pushed: 125
+pushed: 126
+pushed: 127
+pushed: 128
+pushed: 129
+pushed: 130
+pushed: 131
+pushed: 132
+pushed: 133
+pushed: 134
+pushed: 135
+pushed: 136
+pushed: 137
+pushed: 138
+pushed: 139
+pushed: 140
+pushed: 141
+pushed: 142
+pushed: 143
+pushed: 144
+pushed: 145
+pushed: 146
+pushed: 147
+pushed: 148
+pushed: 149
+pushed: 150
+pushed: 151
+pushed: 152
+pushed: 153
+pushed: 154
+pushed: 155
+pushed: 156
+pushed: 157
+pushed: 158
+pushed: 159
+pushed: 160
+pushed: 161
+pushed: 162
+pushed: 163
+pushed: 164
+pushed: 165
+pushed: 166
+pushed: 167
+pushed: 168
+pushed: 169
+pushed: 170
+pushed: 171
+pushed: 172
+pushed: 173
+pushed: 174
+pushed: 175
+pushed: 176
+pushed: 177
+pushed: 178
+pushed: 179
+pushed: 180
+pushed: 181
+pushed: 182
+pushed: 183
+pushed: 184
+pushed: 185
+pushed: 186
+pushed: 187
+pushed: 188
+pushed: 189
+pushed: 190
+pushed: 191
+pushed: 192
+pushed: 193
+pushed: 194
+pushed: 195
+pushed: 196
+pushed: 197
+pushed: 198
+pushed: 199
+pushed: 200
+pushed: 201
+pushed: 202
+pushed: 203
+pushed: 204
+pushed: 205
+pushed: 206
+pushed: 207
+pushed: 208
+pushed: 209
+pushed: 210
+pushed: 211
+pushed: 212
+pushed: 213
+pushed: 214
+pushed: 215
+pushed: 216
+pushed: 217
+pushed: 218
+pushed: 219
+pushed: 220
+pushed: 221
+pushed: 222
+pushed: 223
+pushed: 224
+pushed: 225
+pushed: 226
+pushed: 227
+pushed: 228
+pushed: 229
+pushed: 230
+pushed: 231
+pushed: 232
+pushed: 233
+pushed: 234
+pushed: 235
+pushed: 236
+pushed: 237
+pushed: 238
+pushed: 239
+pushed: 240
+pushed: 241
+pushed: 242
+pushed: 243
+pushed: 244
+pushed: 245
+pushed: 246
+pushed: 247
+pushed: 248
+pushed: 249
+pushed: 250
+pushed: 251
+pushed: 252
+pushed: 253
+pushed: 254
+pushed: 255
+pushed: 256
+pushed: 257
+pushed: 258
+pushed: 259
+pushed: 260
+pushed: 261
+pushed: 262
+pushed: 263
+pushed: 264
+pushed: 265
+pushed: 266
+pushed: 267
+pushed: 268
+pushed: 269
+pushed: 270
+pushed: 271
+pushed: 272
+pushed: 273
+pushed: 274
+pushed: 275
+pushed: 276
+pushed: 277
+pushed: 278
+pushed: 279
+pushed: 280
+pushed: 281
+pushed: 282
+pushed: 283
+pushed: 284
+pushed: 285
+pushed: 286
+pushed: 287
+pushed: 288
+pushed: 289
+pushed: 290
+pushed: 291
+pushed: 292
+pushed: 293
+pushed: 294
+pushed: 295
+pushed: 296
+pushed: 297
+pushed: 298
+pushed: 299
+pushed: 300
+pushed: 301
+pushed: 302
+pushed: 303
+pushed: 304
+pushed: 305
+pushed: 306
+pushed: 307
+pushed: 308
+pushed: 309
+pushed: 310
+pushed: 311
+pushed: 312
+pushed: 313
+pushed: 314
+pushed: 315
+pushed: 316
+pushed: 317
+pushed: 318
+pushed: 319
+pushed: 320
+pushed: 321
+pushed: 322
+pushed: 323
+pushed: 324
+pushed: 325
+pushed: 326
+pushed: 327
+pushed: 328
+pushed: 329
+pushed: 330
+pushed: 331
+pushed: 332
+pushed: 333
+pushed: 334
+pushed: 335
+pushed: 336
+pushed: 337
+pushed: 338
+pushed: 339
+pushed: 340
+pushed: 341
+pushed: 342
+pushed: 343
+pushed: 344
+pushed: 345
+pushed: 346
+pushed: 347
+pushed: 348
+pushed: 349
+pushed: 350
+pushed: 351
+pushed: 352
+pushed: 353
+pushed: 354
+pushed: 355
+pushed: 356
+pushed: 357
+pushed: 358
+pushed: 359
+pushed: 360
+pushed: 361
+pushed: 362
+pushed: 363
+pushed: 364
+pushed: 365
+pushed: 366
+pushed: 367
+pushed: 368
+pushed: 369
+pushed: 370
+pushed: 371
+pushed: 372
+pushed: 373
+pushed: 374
+pushed: 375
+pushed: 376
+pushed: 377
+pushed: 378
+pushed: 379
+pushed: 380
+pushed: 381
+pushed: 382
+pushed: 383
+pushed: 384
+pushed: 385
+pushed: 386
+pushed: 387
+pushed: 388
+pushed: 389
+pushed: 390
+pushed: 391
+pushed: 392
+pushed: 393
+pushed: 394
+pushed: 395
+pushed: 396
+pushed: 397
+pushed: 398
+pushed: 399
+pushed: 400
+pushed: 401
+pushed: 402
+pushed: 403
+pushed: 404
+pushed: 405
+pushed: 406
+pushed: 407
+pushed: 408
+pushed: 409
+pushed: 410
+pushed: 411
+pushed: 412
+pushed: 413
+pushed: 414
+pushed: 415
+pushed: 416
+pushed: 417
+pushed: 418
+pushed: 419
+pushed: 420
+pushed: 421
+pushed: 422
+pushed: 423
+pushed: 424
+pushed: 425
+pushed: 426
+pushed: 427
+pushed: 428
+pushed: 429
+pushed: 430
+pushed: 431
+pushed: 432
+pushed: 433
+pushed: 434
+pushed: 435
+pushed: 436
+pushed: 437
+pushed: 438
+pushed: 439
+pushed: 440
+pushed: 441
+pushed: 442
+pushed: 443
+pushed: 444
+pushed: 445
+pushed: 446
+pushed: 447
+pushed: 448
+pushed: 449
+pushed: 450
+pushed: 451
+pushed: 452
+pushed: 453
+pushed: 454
+pushed: 455
+pushed: 456
+pushed: 457
+pushed: 458
+pushed: 459
+pushed: 460
+pushed: 461
+pushed: 462
+pushed: 463
+pushed: 464
+pushed: 465
+pushed: 466
+pushed: 467
+pushed: 468
+pushed: 469
+pushed: 470
+pushed: 471
+pushed: 472
+pushed: 473
+pushed: 474
+pushed: 475
+pushed: 476
+pushed: 477
+pushed: 478
+pushed: 479
+pushed: 480
+pushed: 481
+pushed: 482
+pushed: 483
+pushed: 484
+pushed: 485
+pushed: 486
+pushed: 487
+pushed: 488
+pushed: 489
+pushed: 490
+pushed: 491
+pushed: 492
+pushed: 493
+pushed: 494
+pushed: 495
+pushed: 496
+pushed: 497
+pushed: 498
+pushed: 499
+pushed: 500
+pushed: 501
+pushed: 502
+pushed: 503
+pushed: 504
+pushed: 505
+pushed: 506
+pushed: 507
+pushed: 508
+pushed: 509
+pushed: 510
+pushed: 511
+pushed: 512
+pushed: 513
+pushed: 514
+pushed: 515
+pushed: 516
+pushed: 517
+pushed: 518
+pushed: 519
+pushed: 520
+pushed: 521
+pushed: 522
+pushed: 523
+pushed: 524
+pushed: 525
+pushed: 526
+pushed: 527
+pushed: 528
+pushed: 529
+pushed: 530
+pushed: 531
+pushed: 532
+pushed: 533
+pushed: 534
+pushed: 535
+pushed: 536
+pushed: 537
+pushed: 538
+pushed: 539
+pushed: 540
+pushed: 541
+pushed: 542
+pushed: 543
+pushed: 544
+pushed: 545
+pushed: 546
+pushed: 547
+pushed: 548
+pushed: 549
+pushed: 550
+pushed: 551
+pushed: 552
+pushed: 553
+pushed: 554
+pushed: 555
+pushed: 556
+pushed: 557
+pushed: 558
+pushed: 559
+pushed: 560
+pushed: 561
+pushed: 562
+pushed: 563
+pushed: 564
+pushed: 565
+pushed: 566
+pushed: 567
+pushed: 568
+pushed: 569
+pushed: 570
+pushed: 571
+pushed: 572
+pushed: 573
+pushed: 574
+pushed: 575
+pushed: 576
+pushed: 577
+pushed: 578
+pushed: 579
+pushed: 580
+pushed: 581
+pushed: 582
+pushed: 583
+pushed: 584
+pushed: 585
+pushed: 586
+pushed: 587
+pushed: 588
+pushed: 589
+pushed: 590
+pushed: 591
+pushed: 592
+pushed: 593
+pushed: 594
+pushed: 595
+pushed: 596
+pushed: 597
+pushed: 598
+pushed: 599
+pushed: 600
+pushed: 601
+pushed: 602
+pushed: 603
+pushed: 604
+pushed: 605
+pushed: 606
+pushed: 607
+pushed: 608
+pushed: 609
+pushed: 610
+pushed: 611
+pushed: 612
+pushed: 613
+pushed: 614
+pushed: 615
+pushed: 616
+pushed: 617
+pushed: 618
+pushed: 619
+pushed: 620
+pushed: 621
+pushed: 622
+pushed: 623
+pushed: 624
+pushed: 625
+pushed: 626
+pushed: 627
+pushed: 628
+pushed: 629
+pushed: 630
+pushed: 631
+pushed: 632
+pushed: 633
+pushed: 634
+pushed: 635
+pushed: 636
+pushed: 637
+pushed: 638
+pushed: 639
+pushed: 640
+pushed: 641
+pushed: 642
+pushed: 643
+pushed: 644
+pushed: 645
+pushed: 646
+pushed: 647
+pushed: 648
+pushed: 649
+pushed: 650
+pushed: 651
+pushed: 652
+pushed: 653
+pushed: 654
+pushed: 655
+pushed: 656
+pushed: 657
+pushed: 658
+pushed: 659
+pushed: 660
+pushed: 661
+pushed: 662
+pushed: 663
+pushed: 664
+pushed: 665
+pushed: 666
+pushed: 667
+pushed: 668
+pushed: 669
+pushed: 670
+pushed: 671
+pushed: 672
+pushed: 673
+pushed: 674
+pushed: 675
+pushed: 676
+pushed: 677
+pushed: 678
+pushed: 679
+pushed: 680
+pushed: 681
+pushed: 682
+pushed: 683
+pushed: 684
+pushed: 685
+pushed: 686
+pushed: 687
+pushed: 688
+pushed: 689
+pushed: 690
+pushed: 691
+pushed: 692
+pushed: 693
+pushed: 694
+pushed: 695
+pushed: 696
+pushed: 697
+pushed: 698
+pushed: 699
+pushed: 700
+pushed: 701
+pushed: 702
+pushed: 703
+pushed: 704
+pushed: 705
+pushed: 706
+pushed: 707
+pushed: 708
+pushed: 709
+pushed: 710
+pushed: 711
+pushed: 712
+pushed: 713
+pushed: 714
+pushed: 715
+pushed: 716
+pushed: 717
+pushed: 718
+pushed: 719
+pushed: 720
+pushed: 721
+pushed: 722
+pushed: 723
+pushed: 724
+pushed: 725
+pushed: 726
+pushed: 727
+pushed: 728
+pushed: 729
+pushed: 730
+pushed: 731
+pushed: 732
+pushed: 733
+pushed: 734
+pushed: 735
+pushed: 736
+pushed: 737
+pushed: 738
+pushed: 739
+pushed: 740
+pushed: 741
+pushed: 742
+pushed: 743
+pushed: 744
+pushed: 745
+pushed: 746
+pushed: 747
+pushed: 748
+pushed: 749
+pushed: 750
+pushed: 751
+pushed: 752
+pushed: 753
+pushed: 754
+pushed: 755
+pushed: 756
+pushed: 757
+pushed: 758
+pushed: 759
+pushed: 760
+pushed: 761
+pushed: 762
+pushed: 763
+pushed: 764
+pushed: 765
+pushed: 766
+pushed: 767
+pushed: 768
+pushed: 769
+pushed: 770
+pushed: 771
+pushed: 772
+pushed: 773
+pushed: 774
+pushed: 775
+pushed: 776
+pushed: 777
+pushed: 778
+pushed: 779
+pushed: 780
+pushed: 781
+pushed: 782
+pushed: 783
+pushed: 784
+pushed: 785
+pushed: 786
+pushed: 787
+pushed: 788
+pushed: 789
+pushed: 790
+pushed: 791
+pushed: 792
+pushed: 793
+pushed: 794
+pushed: 795
+pushed: 796
+pushed: 797
+pushed: 798
+pushed: 799
+pushed: 800
+pushed: 801
+pushed: 802
+pushed: 803
+pushed: 804
+pushed: 805
+pushed: 806
+pushed: 807
+pushed: 808
+pushed: 809
+pushed: 810
+pushed: 811
+pushed: 812
+pushed: 813
+pushed: 814
+pushed: 815
+pushed: 816
+pushed: 817
+pushed: 818
+pushed: 819
+pushed: 820
+pushed: 821
+pushed: 822
+pushed: 823
+pushed: 824
+pushed: 825
+pushed: 826
+pushed: 827
+pushed: 828
+pushed: 829
+pushed: 830
+pushed: 831
+pushed: 832
+pushed: 833
+pushed: 834
+pushed: 835
+pushed: 836
+pushed: 837
+pushed: 838
+pushed: 839
+pushed: 840
+pushed: 841
+pushed: 842
+pushed: 843
+pushed: 844
+pushed: 845
+pushed: 846
+pushed: 847
+pushed: 848
+pushed: 849
+pushed: 850
+pushed: 851
+pushed: 852
+pushed: 853
+pushed: 854
+pushed: 855
+pushed: 856
+pushed: 857
+pushed: 858
+pushed: 859
+pushed: 860
+pushed: 861
+pushed: 862
+pushed: 863
+pushed: 864
+pushed: 865
+pushed: 866
+pushed: 867
+pushed: 868
+pushed: 869
+pushed: 870
+pushed: 871
+pushed: 872
+pushed: 873
+pushed: 874
+pushed: 875
+pushed: 876
+pushed: 877
+pushed: 878
+pushed: 879
+pushed: 880
+pushed: 881
+pushed: 882
+pushed: 883
+pushed: 884
+pushed: 885
+pushed: 886
+pushed: 887
+pushed: 888
+pushed: 889
+pushed: 890
+pushed: 891
+pushed: 892
+pushed: 893
+pushed: 894
+pushed: 895
+pushed: 896
+pushed: 897
+pushed: 898
+pushed: 899
+pushed: 900
+pushed: 901
+pushed: 902
+pushed: 903
+pushed: 904
+pushed: 905
+pushed: 906
+pushed: 907
+pushed: 908
+pushed: 909
+pushed: 910
+pushed: 911
+pushed: 912
+pushed: 913
+pushed: 914
+pushed: 915
+pushed: 916
+pushed: 917
+pushed: 918
+pushed: 919
+pushed: 920
+pushed: 921
+pushed: 922
+pushed: 923
+pushed: 924
+pushed: 925
+pushed: 926
+pushed: 927
+pushed: 928
+pushed: 929
+pushed: 930
+pushed: 931
+pushed: 932
+pushed: 933
+pushed: 934
+pushed: 935
+pushed: 936
+pushed: 937
+pushed: 938
+pushed: 939
+pushed: 940
+pushed: 941
+pushed: 942
+pushed: 943
+pushed: 944
+pushed: 945
+pushed: 946
+pushed: 947
+pushed: 948
+pushed: 949
+pushed: 950
+pushed: 951
+pushed: 952
+pushed: 953
+pushed: 954
+pushed: 955
+pushed: 956
+pushed: 957
+pushed: 958
+pushed: 959
+pushed: 960
+pushed: 961
+pushed: 962
+pushed: 963
+pushed: 964
+pushed: 965
+pushed: 966
+pushed: 967
+pushed: 968
+pushed: 969
+pushed: 970
+pushed: 971
+pushed: 972
+pushed: 973
+pushed: 974
+pushed: 975
+pushed: 976
+pushed: 977
+pushed: 978
+pushed: 979
+pushed: 980
+pushed: 981
+pushed: 982
+pushed: 983
+pushed: 984
+pushed: 985
+pushed: 986
+pushed: 987
+pushed: 988
+pushed: 989
+pushed: 990
+pushed: 991
+pushed: 992
+pushed: 993
+pushed: 994
+pushed: 995
+pushed: 996
+pushed: 997
+pushed: 998
+pushed: 999
+pushed: 1000
+
+Wydruk cons:
+
+popped: 3
+popped: 4
+popped: 5
+popped: 6
+popped: 7
+popped: 8
+popped: 9
+popped: 10
+popped: 11
+popped: 12
+popped: 13
+popped: 14
+popped: 15
+popped: 16
+popped: 17
+popped: 18
+popped: 19
+popped: 20
+popped: 21
+popped: 22
+popped: 23
+popped: 24
+popped: 25
+popped: 26
+popped: 27
+popped: 28
+popped: 29
+popped: 30
+popped: 31
+popped: 32
+popped: 33
+popped: 34
+popped: 35
+popped: 36
+popped: 37
+popped: 38
+popped: 39
+popped: 40
+popped: 41
+popped: 42
+popped: 43
+popped: 44
+popped: 45
+popped: 46
+popped: 47
+popped: 48
+popped: 49
+popped: 50
+popped: 51
+popped: 52
+popped: 53
+popped: 54
+popped: 55
+popped: 56
+popped: 57
+popped: 58
+popped: 59
+popped: 60
+popped: 61
+popped: 62
+popped: 63
+popped: 64
+popped: 65
+popped: 66
+popped: 67
+popped: 68
+popped: 69
+popped: 70
+popped: 71
+popped: 72
+popped: 73
+popped: 74
+popped: 75
+popped: 76
+popped: 77
+popped: 78
+popped: 79
+popped: 80
+popped: 81
+popped: 82
+popped: 83
+popped: 84
+popped: 85
+popped: 86
+popped: 87
+popped: 88
+popped: 89
+popped: 90
+popped: 91
+popped: 92
+popped: 93
+popped: 94
+popped: 95
+popped: 96
+popped: 97
+popped: 98
+popped: 99
+popped: 100
+popped: 101
+popped: 102
+popped: 103
+popped: 104
+popped: 105
+popped: 106
+popped: 107
+popped: 108
+popped: 109
+popped: 110
+popped: 111
+popped: 112
+popped: 113
+popped: 114
+popped: 115
+popped: 116
+popped: 117
+popped: 118
+popped: 119
+popped: 120
+popped: 121
+popped: 122
+popped: 123
+popped: 124
+popped: 125
+popped: 126
+popped: 127
+popped: 128
+popped: 129
+popped: 130
+popped: 131
+popped: 132
+popped: 133
+popped: 134
+popped: 135
+popped: 136
+popped: 137
+popped: 138
+popped: 139
+popped: 140
+popped: 141
+popped: 142
+popped: 143
+popped: 144
+popped: 145
+popped: 146
+popped: 147
+popped: 148
+popped: 149
+popped: 150
+popped: 151
+popped: 152
+popped: 153
+popped: 154
+popped: 155
+popped: 156
+popped: 157
+popped: 158
+popped: 159
+popped: 160
+popped: 161
+popped: 162
+popped: 163
+popped: 164
+popped: 165
+popped: 166
+popped: 167
+popped: 168
+popped: 169
+popped: 170
+popped: 171
+popped: 172
+popped: 173
+popped: 174
+popped: 175
+popped: 176
+popped: 177
+popped: 178
+popped: 179
+popped: 180
+popped: 181
+popped: 182
+popped: 183
+popped: 184
+popped: 185
+popped: 186
+popped: 187
+popped: 188
+popped: 189
+popped: 190
+popped: 191
+popped: 192
+popped: 193
+popped: 194
+popped: 195
+popped: 196
+popped: 197
+popped: 198
+popped: 199
+popped: 200
+popped: 201
+popped: 202
+popped: 203
+popped: 204
+popped: 205
+popped: 206
+popped: 207
+popped: 208
+popped: 209
+popped: 210
+popped: 211
+popped: 212
+popped: 213
+popped: 214
+popped: 215
+popped: 216
+popped: 217
+popped: 218
+popped: 219
+popped: 220
+popped: 221
+popped: 222
+popped: 223
+popped: 224
+popped: 225
+popped: 226
+popped: 227
+popped: 228
+popped: 229
+popped: 230
+popped: 231
+popped: 232
+popped: 233
+popped: 234
+popped: 235
+popped: 236
+popped: 237
+popped: 238
+popped: 239
+popped: 240
+popped: 241
+popped: 242
+popped: 243
+popped: 244
+popped: 245
+popped: 246
+popped: 247
+popped: 248
+popped: 249
+popped: 250
+popped: 251
+popped: 252
+popped: 253
+popped: 254
+popped: 255
+popped: 256
+popped: 257
+popped: 258
+popped: 259
+popped: 260
+popped: 261
+popped: 262
+popped: 263
+popped: 264
+popped: 265
+popped: 266
+popped: 267
+popped: 268
+popped: 269
+popped: 270
+popped: 271
+popped: 272
+popped: 273
+popped: 274
+popped: 275
+popped: 276
+popped: 277
+popped: 278
+popped: 279
+popped: 280
+popped: 281
+popped: 282
+popped: 283
+popped: 284
+popped: 285
+popped: 286
+popped: 287
+popped: 288
+popped: 289
+popped: 290
+popped: 291
+popped: 292
+popped: 293
+popped: 294
+popped: 295
+popped: 296
+popped: 297
+popped: 298
+popped: 299
+popped: 300
+popped: 301
+popped: 302
+popped: 303
+popped: 304
+popped: 305
+popped: 306
+popped: 307
+popped: 308
+popped: 309
+popped: 310
+popped: 311
+popped: 312
+popped: 313
+popped: 314
+popped: 315
+popped: 316
+popped: 317
+popped: 318
+popped: 319
+popped: 320
+popped: 321
+popped: 322
+popped: 323
+popped: 324
+popped: 325
+popped: 326
+popped: 327
+popped: 328
+popped: 329
+popped: 330
+popped: 331
+popped: 332
+popped: 333
+popped: 334
+popped: 335
+popped: 336
+popped: 337
+popped: 338
+popped: 339
+popped: 340
+popped: 341
+popped: 342
+popped: 343
+popped: 344
+popped: 345
+popped: 346
+popped: 347
+popped: 348
+popped: 349
+popped: 350
+popped: 351
+popped: 352
+popped: 353
+popped: 354
+popped: 355
+popped: 356
+popped: 357
+popped: 358
+popped: 359
+popped: 360
+popped: 361
+popped: 362
+popped: 363
+popped: 364
+popped: 365
+popped: 366
+popped: 367
+popped: 368
+popped: 369
+popped: 370
+popped: 371
+popped: 372
+popped: 373
+popped: 374
+popped: 375
+popped: 376
+popped: 377
+popped: 378
+popped: 379
+popped: 380
+popped: 381
+popped: 382
+popped: 383
+popped: 384
+popped: 385
+popped: 386
+popped: 387
+popped: 388
+popped: 389
+popped: 390
+popped: 391
+popped: 392
+popped: 393
+popped: 394
+popped: 395
+popped: 396
+popped: 397
+popped: 398
+popped: 399
+popped: 400
+popped: 401
+popped: 402
+popped: 403
+popped: 404
+popped: 405
+popped: 406
+popped: 407
+popped: 408
+popped: 409
+popped: 410
+popped: 411
+popped: 412
+popped: 413
+popped: 414
+popped: 415
+popped: 416
+popped: 417
+popped: 418
+popped: 419
+popped: 420
+popped: 421
+popped: 422
+popped: 423
+popped: 424
+popped: 425
+popped: 426
+popped: 427
+popped: 428
+popped: 429
+popped: 430
+popped: 431
+popped: 432
+popped: 433
+popped: 434
+popped: 435
+popped: 436
+popped: 437
+popped: 438
+popped: 439
+popped: 440
+popped: 441
+popped: 442
+popped: 443
+popped: 444
+popped: 445
+popped: 446
+popped: 447
+popped: 448
+popped: 449
+popped: 450
+popped: 451
+popped: 452
+popped: 453
+popped: 454
+popped: 455
+popped: 456
+popped: 457
+popped: 458
+popped: 459
+popped: 460
+popped: 461
+popped: 462
+popped: 463
+popped: 464
+popped: 465
+popped: 466
+popped: 467
+popped: 468
+popped: 469
+popped: 470
+popped: 471
+popped: 472
+popped: 473
+popped: 474
+popped: 475
+popped: 476
+popped: 477
+popped: 478
+popped: 479
+popped: 480
+popped: 481
+popped: 482
+popped: 483
+popped: 484
+popped: 485
+popped: 486
+popped: 487
+popped: 488
+popped: 489
+popped: 490
+popped: 491
+popped: 492
+popped: 493
+popped: 494
+popped: 495
+popped: 496
+popped: 497
+popped: 498
+popped: 499
+popped: 500
+popped: 501
+popped: 502
+popped: 503
+popped: 504
+popped: 505
+popped: 506
+popped: 507
+popped: 508
+popped: 509
+popped: 510
+popped: 511
+popped: 512
+popped: 513
+popped: 514
+popped: 515
+popped: 516
+popped: 517
+popped: 518
+popped: 519
+popped: 520
+popped: 521
+popped: 522
+popped: 523
+popped: 524
+popped: 525
+popped: 526
+popped: 527
+popped: 528
+popped: 529
+popped: 530
+popped: 531
+popped: 532
+popped: 533
+popped: 534
+popped: 535
+popped: 536
+popped: 537
+popped: 538
+popped: 539
+popped: 540
+popped: 541
+popped: 542
+popped: 543
+popped: 544
+popped: 545
+popped: 546
+popped: 547
+popped: 548
+popped: 549
+popped: 550
+popped: 551
+popped: 552
+popped: 553
+popped: 554
+popped: 555
+popped: 556
+popped: 557
+popped: 558
+popped: 559
+popped: 560
+popped: 561
+popped: 562
+popped: 563
+popped: 564
+popped: 565
+popped: 566
+popped: 567
+popped: 568
+popped: 569
+popped: 570
+popped: 571
+popped: 572
+popped: 573
+popped: 574
+popped: 575
+popped: 576
+popped: 577
+popped: 578
+popped: 579
+popped: 580
+popped: 581
+popped: 582
+popped: 583
+popped: 584
+popped: 585
+popped: 586
+popped: 587
+popped: 588
+popped: 589
+popped: 590
+popped: 591
+popped: 592
+popped: 593
+popped: 594
+popped: 595
+popped: 596
+popped: 597
+popped: 598
+popped: 599
+popped: 600
+popped: 601
+popped: 602
+popped: 603
+popped: 604
+popped: 605
+popped: 606
+popped: 607
+popped: 608
+popped: 609
+popped: 610
+popped: 611
+popped: 612
+popped: 613
+popped: 614
+popped: 615
+popped: 616
+popped: 617
+popped: 618
+popped: 619
+popped: 620
+popped: 621
+popped: 622
+popped: 623
+popped: 624
+popped: 625
+popped: 626
+popped: 627
+popped: 628
+popped: 629
+popped: 630
+popped: 631
+popped: 632
+popped: 633
+popped: 634
+popped: 635
+popped: 636
+popped: 637
+popped: 638
+popped: 639
+popped: 640
+popped: 641
+popped: 642
+popped: 643
+popped: 644
+popped: 645
+popped: 646
+popped: 647
+popped: 648
+popped: 649
+popped: 650
+popped: 651
+popped: 652
+popped: 653
+popped: 654
+popped: 655
+popped: 656
+popped: 657
+popped: 658
+popped: 659
+popped: 660
+popped: 661
+popped: 662
+popped: 663
+popped: 664
+popped: 665
+popped: 666
+popped: 667
+popped: 668
+popped: 669
+popped: 670
+popped: 671
+popped: 672
+popped: 673
+popped: 674
+popped: 675
+popped: 676
+popped: 677
+popped: 678
+popped: 679
+popped: 680
+popped: 681
+popped: 682
+popped: 683
+popped: 684
+popped: 685
+popped: 686
+popped: 687
+popped: 688
+popped: 689
+popped: 690
+popped: 691
+popped: 692
+popped: 693
+popped: 694
+popped: 695
+popped: 696
+popped: 697
+popped: 698
+popped: 699
+popped: 700
+popped: 701
+popped: 702
+popped: 703
+popped: 704
+popped: 705
+popped: 706
+popped: 707
+popped: 708
+popped: 709
+popped: 710
+popped: 711
+popped: 712
+popped: 713
+popped: 714
+popped: 715
+popped: 716
+popped: 717
+popped: 718
+popped: 719
+popped: 720
+popped: 721
+popped: 722
+popped: 723
+popped: 724
+popped: 725
+popped: 726
+popped: 727
+popped: 728
+popped: 729
+popped: 730
+popped: 731
+popped: 732
+popped: 733
+popped: 734
+popped: 735
+popped: 736
+popped: 737
+popped: 738
+popped: 739
+popped: 740
+popped: 741
+popped: 742
+popped: 743
+popped: 744
+popped: 745
+popped: 746
+popped: 747
+popped: 748
+popped: 749
+popped: 750
+popped: 751
+popped: 752
+popped: 753
+popped: 754
+popped: 755
+popped: 756
+popped: 757
+popped: 758
+popped: 759
+popped: 760
+popped: 761
+popped: 762
+popped: 763
+popped: 764
+popped: 765
+popped: 766
+popped: 767
+popped: 768
+popped: 769
+popped: 770
+popped: 771
+popped: 772
+popped: 773
+popped: 774
+popped: 775
+popped: 776
+popped: 777
+popped: 778
+popped: 779
+popped: 780
+popped: 781
+popped: 782
+popped: 783
+popped: 784
+popped: 785
+popped: 786
+popped: 787
+popped: 788
+popped: 789
+popped: 790
+popped: 791
+popped: 792
+popped: 793
+popped: 794
+popped: 795
+popped: 796
+popped: 797
+popped: 798
+popped: 799
+popped: 800
+popped: 801
+popped: 802
+popped: 803
+popped: 804
+popped: 805
+popped: 806
+popped: 807
+popped: 808
+popped: 809
+popped: 810
+popped: 811
+popped: 812
+popped: 813
+popped: 814
+popped: 815
+popped: 816
+popped: 817
+popped: 818
+popped: 819
+popped: 820
+popped: 821
+popped: 822
+popped: 823
+popped: 824
+popped: 825
+popped: 826
+popped: 827
+popped: 828
+popped: 829
+popped: 830
+popped: 831
+popped: 832
+popped: 833
+popped: 834
+popped: 835
+popped: 836
+popped: 837
+popped: 838
+popped: 839
+popped: 840
+popped: 841
+popped: 842
+popped: 843
+popped: 844
+popped: 845
+popped: 846
+popped: 847
+popped: 848
+popped: 849
+popped: 850
+popped: 851
+popped: 852
+popped: 853
+popped: 854
+popped: 855
+popped: 856
+popped: 857
+popped: 858
+popped: 859
+popped: 860
+popped: 861
+popped: 862
+popped: 863
+popped: 864
+popped: 865
+popped: 866
+popped: 867
+popped: 868
+popped: 869
+popped: 870
+popped: 871
+popped: 872
+popped: 873
+popped: 874
+popped: 875
+popped: 876
+popped: 877
+popped: 878
+popped: 879
+popped: 880
+popped: 881
+popped: 882
+popped: 883
+popped: 884
+popped: 885
+popped: 886
+popped: 887
+popped: 888
+popped: 889
+popped: 890
+popped: 891
+popped: 892
+popped: 893
+popped: 894
+popped: 895
+popped: 896
+popped: 897
+popped: 898
+popped: 899
+popped: 900
+popped: 901
+popped: 902
+popped: 903
+popped: 904
+popped: 905
+popped: 906
+popped: 907
+popped: 908
+popped: 909
+popped: 910
+popped: 911
+popped: 912
+popped: 913
+popped: 914
+popped: 915
+popped: 916
+popped: 917
+popped: 918
+popped: 919
+popped: 920
+popped: 921
+popped: 922
+popped: 923
+popped: 924
+popped: 925
+popped: 926
+popped: 927
+popped: 928
+popped: 929
+popped: 930
+popped: 931
+popped: 932
+popped: 933
+popped: 934
+popped: 935
+popped: 936
+popped: 937
+popped: 938
+popped: 939
+popped: 940
+popped: 941
+popped: 942
+popped: 943
+popped: 944
+popped: 945
+popped: 946
+popped: 947
+popped: 948
+popped: 949
+popped: 950
+popped: 951
+popped: 952
+popped: 953
+popped: 954
+popped: 955
+popped: 956
+popped: 957
+popped: 958
+popped: 959
+popped: 960
+popped: 961
+popped: 962
+popped: 963
+popped: 964
+popped: 965
+popped: 966
+popped: 967
+popped: 968
+popped: 969
+popped: 970
+popped: 971
+popped: 972
+popped: 973
+popped: 974
+popped: 975
+popped: 976
+popped: 977
+popped: 978
+popped: 979
+popped: 980
+popped: 981
+popped: 982
+popped: 983
+popped: 984
+popped: 985
+popped: 986
+popped: 987
+popped: 988
+popped: 989
+popped: 990
+popped: 991
+popped: 992
+popped: 993
+popped: 994
+popped: 995
+popped: 996
+popped: 997
+popped: 998
+popped: 999
+popped: 1000
+
+(nie wszystko sie zmiescilo w konsoli)
+
+}

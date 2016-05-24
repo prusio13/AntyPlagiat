@@ -1,0 +1,944 @@
+przedmiot TAS temat B nr_indeksu 384283 liczba_pkt 4 
+
+
+
+
+ZADANIE 10 -------------------------------------
+Uruchom przyk³ad programu RMI rmi4.zip, a nastêpnie:
+
+    1. Zaprojektuj eksperyment który poka¿e ¿e je¶li 2 klientów uruchamia metodê na rzecz tego samego obiektu RMI, to s± oni obs³ugiwani na osobnych w±tkach (przerób implementacjê powolnaMetoda() !).
+    2. Sprawd¼ i opisz ró¿nicê w dzia³aniu tego programu gdy drugiObiekt:
+        jest eksportowany (czyli jest obiektem odleg³ym)
+        nie jest eksportowany
+    3. Zbadaj jak s± obs³ugiwane wyj±tki które pojawiaj± siê w metodach obiektu RMI; w tym celu dodaj nastêpuj±c± metodê do interfejsu Odleg³yObiekt:
+        public void generujeBlad() throws RemoteException
+        {
+            throw new RemoteException("sztucznie wygenerowany blad ...");
+        }
+    i zobacz jak siê ona zachowuje z pkt widzenia klienta ...
+
+W sprawozdaniu umie¶æ odp na pytania, kod, wydruki produkowane przez programy.
+
+
+1. Chc±c sprawdziæ, czy klienci s± obs³ugiwani w osobnych w±tkach nale¿y zmieniæ
+   czas w powolnej metodzie (np. 1s) i uruchomiæ dwóch klientów.
+ 
+public int powolnaMetoda() throws RemoteException
+  {
+    licznik++;
+    System.out.println("sserwer: powolnaMetoda(); licznik="+licznik);
+    try {Thread.sleep(20000);} catch(Exception e) {};
+    System.out.println("sserwer: powolnaMetoda(); koniec dzialania!");
+    return licznik;
+  }
+  
+  Wyra¼nie widaæ, ¿e uruchomione s± dwa w±tki, bo przeplataj± siê dane wypisywane
+  przez nie na wyj¶ciu.
+
+------------------------------------client1-------------------------------------
+s384283@pc23m:~/Desktop/TAS_1 java kklient
+
+kklient: oo.powolnaMetoda()=2
+kklient: oo2.powolnaMetoda()=2
+kklient: oo2.powolnaMetoda()=4
+
+
+------------------------------------client2-------------------------------------
+s384283@pc23m:~/Desktop/TAS_1 java kklient
+
+kklient: oo.powolnaMetoda()=2
+kklient: oo2.powolnaMetoda()=3
+kklient: oo2.powolnaMetoda()=4
+  
+------------------------------------serwer--------------------------------------
+  
+s384283@pc23m:~/Desktop/TAS_1 javac sserwer.java 
+s384283@pc23m:~/Desktop/TAS_1 java sserwer
+
+sserwer: zaczynam tworzyc obiekty ...
+sserwer: OdleglaKlasa(); ok
+sserwer: OdleglaKlasa(String); ok
+sserwer: obiekty utworzone !!!
+sserwer: powolnaMetoda(); licznik=1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 2
+sserwer: powolnaMetoda(); licznik=2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 9
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+sserwer: powolnaMetoda(); licznik=1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 2
+sserwer: powolnaMetoda(); koniec dzialania !
+sserwer: powolnaMetoda(); licznik=2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 9
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+sserwer: powolnaMetoda(); licznik=3
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 2
+sserwer: powolnaMetoda(); koniec dzialania !
+sserwer: powolnaMetoda(); licznik=4
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 9
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(3)-127.0.0.1,5,RMI Runtime] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+sserwer: powolnaMetoda(); koniec dzialania !
+
+2. Je¿eli zakomentujemy kod drugiego klienta
+
+------------------------------------client--------------------------------------
+s384283@pc23m:~/Desktop/TAS_1 java kklient
+kklient: oo.powolnaMetoda()=1
+kklient: blad !!! error unmarshalling return; nested exception is: 
+	java.lang.ClassNotFoundException: OdleglaKlasa (no security manager: RMI class loader disabled)
+
+  
+------------------------------------serwer--------------------------------------
+s384283@pc23m:~/Desktop/TAS_1 java sserwer 
+
+sserwer: zaczynam tworzyc obiekty ...
+sserwer: OdleglaKlasa(); ok
+sserwer: OdleglaKlasa(String); ok
+sserwer: obiekty utworzone !!!
+sserwer: powolnaMetoda(); licznik=1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+
+nale¿y zatem skopiowaæ kod klasy OdleglaKlasa: 
+ 
+------------------------------------serwer--------------------------------------
+
+s384283@pc23m:~/Desktop/TAS_1 java sserwer
+
+sserwer: zaczynam tworzyc obiekty ...
+sserwer: OdleglaKlasa(); ok
+sserwer: OdleglaKlasa(String); ok
+sserwer: obiekty utworzone !!!
+sserwer: powolnaMetoda(); licznik=1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 0
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 1
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 2
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 3
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 4
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 5
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 6
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 7
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 8
+Thread[RMI TCP Connection(2)-127.0.0.1,5,RMI Runtime] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+
+------------------------------------client--------------------------------------
+s384283@pc23m:~/Desktop/TAS_1 java kklient
+
+kklient: oo.powolnaMetoda()=1
+sserwer: powolnaMetoda(); licznik=1
+Thread[main,5,main] 0
+Thread[main,5,main] 1
+Thread[main,5,main] 2
+Thread[main,5,main] 3
+Thread[main,5,main] 4
+Thread[main,5,main] 5
+Thread[main,5,main] 6
+Thread[main,5,main] 7
+Thread[main,5,main] 8
+Thread[main,5,main] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+kklient: oo2.powolnaMetoda()=1
+sserwer: powolnaMetoda(); licznik=2
+Thread[main,5,main] 0
+Thread[main,5,main] 1
+Thread[main,5,main] 2
+Thread[main,5,main] 3
+Thread[main,5,main] 4
+Thread[main,5,main] 5
+Thread[main,5,main] 6
+Thread[main,5,main] 7
+Thread[main,5,main] 8
+Thread[main,5,main] 9
+sserwer: powolnaMetoda(); koniec dzialania !
+kklient: oo2.powolnaMetoda()=2
+
+Zatem widzimy, ¿e w±tek operowa³ na lokalnej kopii obiektu, a nie na obiekcie
+zdalnym, zatem komunikaty przez niego wypisywane pojawia³y siê w konsoli klienta
+
+3. Po stronie klienta wy¶wietla siê b³±d, po stronie serwera nic siê nie pokazuje
+
+------------------------------------client--------------------------------------
+
+kklient: blad !!! RemoteException occurred in server thread; nested exception is: 
+        java.rmi.RemoteException: sztucznie wygenerowany blad ...
+
+
+
+
+ZADANIE 11 -------------------------------------
+Zaprogramuj obiekt RMI "Odleg³yBufor" (nazwa interfejsu), rozwi±zuj±cy problem producenta i konsumenta.
+Obiekt RMI powinien mieæ metody:
+
+    void WstawElement(int el) 
+    int PobierzElement() 
+      // jak widaæ do bufora wstawiamy jedynie liczby "int" !
+
+Bufor przechowujacy elementy (typu FIFO) powinien byc w tablicy 50 integerow.
+Powinien istnieæ pomocniczy obiekt RMI "TwórzOdleg³eBufory" dostêpny przez nazwê "producent_konsument" w rmiregistry, zawieraj±cy metodê:
+
+    OdleglyBufor nowyOdleg³yBufor()
+      // mog± z niej korzystaæ dwa w±tki tego samego procesu ...
+
+tworz±c± obiekty Odleg³yBufor na ¿±danie (cos w rodzaju "fabryki obiektow").
+Przygotuj eksperyment pokazuj±cy ¿e to wszystko dzia³a.
+Niech producent produkuje liczby 1..1000, a konsument wyswietla co konsumuje.
+Uwaga: producent i konsument musza byc (w zadaniu 11) watkami jednego programu, aby mialy dostep do wspolnego odleglego bufora.
+Do sprawozdania wstaw kody ¼ród³owe klas oraz wydruki eksperymentów ...
+
+
+
+
+Producent produkuje liczbê co 1s, a konsument próbuje j± pobraæ co 100ms.
+W efekcie, konsument pobiera liczbê natychmiastowo po jej wyprodukowaniu.
+
+------------------------------------client--------------------------------------
+import  java.rmi.*;
+import  java.rmi.registry.*;
+class  Konsument  implements  Runnable  {
+	OdleglyBufor  bufor;
+        public  Konsument( OdleglyBufor  a ) {
+		    bufor  =  a;
+        }
+        
+        @Override
+        public  void  run(){
+		System.err.println("Konsument  zaczal  dzialanie" );
+		try{
+		    Thread.sleep(2000);
+		}catch(Exception  e){};
+
+		while(true){
+			try{
+		        	Thread.sleep(1500);
+			        int  b  =  bufor.pobierzElement();
+				    System.err.println("Konsument pobral:" + y);}
+			catch(Exception  e){  
+				System.err.println("Konsument blad!!!!" );  };}
+        }
+}
+
+class  Producent  implements  Runnable  {
+	OdleglyBufor  bufor;
+	    int  liczba  =  0;
+        public  Producent(  OdleglyBufor  a  )  {
+		    bufor  =  a;
+        }
+        @Override
+        public  void  run()  {
+		while(true)
+		{
+			liczba++;
+			try  {
+				Thread.sleep(1000);			
+				bufor.wstawElement(liczba);
+				System.err.println("Producent  wstawil  liczbe  " + liczba );	
+			}
+			catch(Exception  e){ System.err.println("Producent  blad!!!!"  );  };	
+		}
+        }
+}
+public  class  kklient {
+    public  static  void  main(String  args[]) {
+	    OdleglyBufor  oBufor  =  null;
+        try  {
+              TworzOdlegleBufory  tOB  =  (TworzOdlegleBufory)Naming.lookup(
+                "rmi://localhost/przyklad_rmi4");
+	    oBufor  =  tOB.nowyOdleglyBufor();
+        }  catch(Exception  e)  {
+            System.err.println("Klasa:  blad  !!!" + e.getMessage());
+        }
+        new  Thread(new  Producent(oBufor)).start();
+        new  Thread(new  Konsument(oBufor)).start();
+    }
+}
+
+------------------------------------serwer--------------------------------------
+import  java.rmi.*;
+import  java.rmi.registry.*;
+import  java.rmi.server.*;
+import  java.io.*;
+import  java.util.*;
+
+class  Fabryka
+implements  TworzOdlegleBufory,  Serializable{
+    Fabryka(String  s)  throws  RemoteException{
+        super();
+        try  {
+            UnicastRemoteObject.exportObject(this);
+            Naming.rebind(s,this);
+        }  catch(Exception  e)  {
+            System.err.println("sserwer:  OdleglaKlasa(String);  blad  !!!  "+e.getMessage());
+        }
+        System.out.println("sserwer:  OdleglaKlasa(String);  ok");
+    }
+    Fabryka()  throws  RemoteException{
+        super();
+        System.out.println("sserwer:  OdleglaKlasa();  ok");}
+    public  OdleglyBufor  nowyOdleglyBufor(  )  throws  RemoteException
+    {
+        OdleglyBufor  nowyBufor  =  new  Bufor();
+        UnicastRemoteObject.exportObject(nowyBufor);
+        return  nowyBufor;
+    }
+}
+class  Bufor
+implements  OdleglyBufor,  Serializable
+{
+    Vector<Integer>  bufor;
+    static  int  maxSize  =  10;  
+    Bufor()  throws  RemoteException
+    {
+        super();
+        bufor  =  new  Vector();
+        System.out.println("sserwer:  OdleglaKlasa(String);  ok");
+    }
+    public  synchronized  int  pobierzElement()  throws  RemoteException
+    {
+	int  res  =  0;
+	try  {
+			while(bufor.isEmpty()){
+				wait();}
+		        res  =    bufor.firstElement();
+			bufor.removeElementAt(0);
+			System.err.println("Usuwanie  liczby");
+			notifyAll();
+		}
+		catch(Exception  e){};
+		return  res;	
+    }
+    public  synchronized  void  wstawElement(int  a)  throws  RemoteException
+    {
+		try  {
+			if( bufor.size()  ==  maxSize ){
+				wait();}
+			bufor.add( a );
+			System.err.println("Wstawianie  liczby");
+			notifyAll();}
+		catch(Exception  e){};
+    }
+}
+
+public  class  sserwer {
+    public  static  void  main(String  args[]) {
+        try  {
+            System.out.println("sserwer:  zaczynam  tworzyc  obiekty  ...");
+            Fabryka  oo=  new  Fabryka("przyklad_rmi4");
+            System.out.println("sserwer:  obiekty  utworzone  !!!");
+        }  catch(Exception  e)  {
+            System.err.println("sserwer:  blad  !!!  "+e.getMessage());
+        }
+    }
+}
+
+------------------------------------interfejs-----------------------------------
+
+import  java.rmi.*;
+public  interface  OdleglyBufor  extends  Remote
+{
+	void  wstawElement(  int  el  )  throws  RemoteException;
+	int  pobierzElement()  throws  RemoteException;
+}
+import  java.rmi.*;
+import  java.util.*;
+
+public  interface  TworzOdlegleBufory  extends  Remote
+{
+        OdleglyBufor  nowyOdleglyBufor()  throws  RemoteException;
+}
+
+------------------------------wydruk z konsoli----------------------------------
+
+s384283@pc23m:~/Desktop/TAS_1 java kklient
+Konsument zaczal dzialanie
+Producent wstawil liczbe 1
+Producent wstawil liczbe 2
+Konsument pobral liczbe 1
+Konsument pobral liczbe 2
+Producent wstawil liczbe 3
+Konsument pobral liczbe 3
+Producent wstawil liczbe 4
+Konsument pobral liczbe 4
+Producent wstawil liczbe 5
+Konsument pobral liczbe 5
+
+Serwer:
+
+s384283@pc23m:~/Desktop/TAS_1 java sserwer localhost
+
+sserwer: zaczynam tworzyc obiekty ...
+sserwer: OdleglaKlasa(String); ok
+sserwer: obiekty utworzone !!!
+sserwer: OdleglaKlasa(String); ok
+Wstawianie liczby
+Wstawianie liczby
+Usuwanie liczby
+Usuwanie liczby
+Wstawianie liczby
+Usuwanie liczby
+Wstawianie liczby
+Usuwanie liczby
+Wstawianie liczby
+Usuwanie liczby
+Wstawianie liczby
+
+
+ZADANIE 12 -------------------------------------
+
+Do poprzedniego zadania dodaj metodê:
+
+    OdleglyBufor nowyOdleg³yBuforZNazwa(String nazwa)
+
+która pozwala korzystaæ z bufora dwóm ró¿nym programom (dostaj± siê od tego samego buforu podaj±c tê sam± nazwê). 
+
+------------------------------wydruk z konsoli----------------------------------
+
+s384283@pc23m:~/Desktop/TAS_1 java kklient
+
+Konsument zaczal dzialanie
+Producent wstawil liczbe 1
+Producent wstawil liczbe 2
+Konsument pobral liczbe 1
+Konsument pobral liczbe 2
+Producent wstawil liczbe 3
+Konsument pobral liczbe 3
+Producent wstawil liczbe 4
+Konsument pobral liczbe 4
+Producent wstawil liczbe 5
+
+SERWER:
+
+s384283@pc23m:~/Desktop/TAS_1 java sserwer localhost
+
+sserwer: zaczynam tworzyc obiekty ...
+sserwer: OdleglaKlasa(String); ok
+sserwer: obiekty utworzone !!!
+sserwer: OdleglaKlasa(String); ok
+Wstawianie liczby
+Wstawianie liczby
+Usuwanie liczby
+Usuwanie liczby
+Wstawianie liczby
+Usuwanie liczby
+Wstawianie liczby
+Usuwanie liczby
+Wstawianie liczby
+Usuwanie liczby
+Wstawianie liczby
+
+------------------------------------client--------------------------------------
+
+import  java.rmi.*;
+import  java.rmi.registry.*;
+
+class  Konsument  implements  Runnable  {
+	OdleglyBufor  bufor;
+        public  Konsument(  )  {
+			OdleglyBufor  oBufor  =  null;
+			try  {
+			    TworzOdlegleBufory  tOB  =  (TworzOdlegleBufory)Naming.lookup(
+				"rmi://localhost/przyklad_rmi4");
+
+			    oBufor  =  tOB.nowyOdleg³yBufor("ladny_nowy_bufor");
+	
+			}  catch(Exception  e)  {
+			    System.err.println("Konsument  :  blad  !!!  "+e.getMessage());
+			}
+			bufor  =  oBufor;
+        }
+
+        @Override
+        public  void  run()  {	
+		System.err.println("Konsument  zaczal  dzialanie"  );
+		try{
+		Thread.sleep(2000);
+		}catch(Exception  e){};
+		while(true)
+		{
+			try{
+		        	Thread.sleep(100);
+			        int  b  =  bufor.pobierzElement();
+				System.err.println("Konsument  pobral  liczbe  "  +  b  );
+			}
+			catch(Exception  e){  
+				System.err.println("Konsument  blad!!!!"  );  };
+		}
+        }
+}
+
+class  Producent  implements  Runnable  {
+	OdleglyBufor  bufor;
+	int  liczba  =  0;
+        public  Producent(  )  {
+			OdleglyBufor  oBufor  =  null;
+			try  {
+			    TworzOdlegleBufory  tOB  =  (TworzOdlegleBufory)Naming.lookup(
+				"rmi://localhost/przyklad_rmi4");
+			    oBufor  =  tOB.nowyOdleg³yBufor("ladny_nowy_bufor");
+			}  catch(Exception  e)  {
+			    System.err.println("Producent  :  blad  !!!  "+e.getMessage());}
+			bufor  =  oBufor;
+        }
+  
+        @Override
+        public  void  run()  {
+		while(true){
+			liczba++;
+			try  {
+				Thread.sleep(1000);			
+				bufor.wstawElement( liczba );
+				System.err.println("Producent  wstawil  liczbe  "  +  liczba );
+			    }
+			    catch(Exception  e){  System.err.println("Producent  blad!!!!"  );    };
+		        }
+        }
+}
+
+public  class  kklient{
+    public  static  void  main(String  args[])
+    {
+        //System.setSecurityManager(new  RMISecurityManager());
+        new  Thread(new  Producent()).start();
+        new  Thread(new  Konsument()).start();
+    }
+}
+
+------------------------------------serwer--------------------------------------
+
+import  java.rmi.*;
+import  java.rmi.registry.*;
+import  java.rmi.server.*;
+import  java.io.*;
+import  java.util.*;
+
+class  Fabryka
+implements  TworzOdlegleBufory,  Serializable
+{
+    Map<  String,  OdleglyBufor  >  slownik;  
+    Fabryka(String  s)  throws  RemoteException
+    {
+        super();
+	    slownik  =  new  HashMap<String,  OdleglyBufor>();
+        try  {
+            UnicastRemoteObject.exportObject(this);
+            Naming.rebind(s,this);
+        }  catch(Exception  e)  {
+            System.err.println("sserwer:  OdleglaKlasa(String);  blad  !!!  "+e.getMessage());
+        }
+        System.out.println("sserwer:  OdleglaKlasa(String);  ok");
+    }
+    Fabryka()  throws  RemoteException
+    {
+        super();
+        System.out.println("sserwer:  OdleglaKlasa();  ok");
+    }
+    public  OdleglyBufor  nowyOdleg³yBufor(  String  s  )  throws  RemoteException
+    {
+        if(  slownik.get(  s  )  ==  null  )
+	{
+	System.out.println("Tworze  obiekt");
+        	OdleglyBufor  nowyB  =  new  Bufor();
+		slownik.put(s,  nowyB);
+        	UnicastRemoteObject.exportObject(nowyB);
+	}
+
+	if(  slownik.get(  s  )  ==  null  ){
+		System.out.println("FAIL");}
+	return  slownik.get(  s  );
+    }
+}
+
+class  Bufor
+implements  OdleglyBufor,  Serializable
+{
+    Vector<Integer>  bufor;
+    static  int  maxSize  =  10;  
+    Bufor()  throws  RemoteException
+    {
+        super();
+        bufor  =  new  Vector();
+        System.out.println("sserwer:  OdleglaKlasa(String);  ok");
+    }
+    public  synchronized  int  pobierzElement()  throws  RemoteException
+    {
+	int  res  =  0;
+	try  {
+			while(  bufor.isEmpty()  ){
+				wait();}	
+		        res  =    bufor.firstElement();
+			bufor.removeElementAt(0);
+			System.err.println("Usuwanie  liczby");
+			notifyAll();
+		}
+		catch(Exception  e){};
+		return  res;	
+    }
+
+    public  synchronized  void  wstawElement(int  a)  throws  RemoteException{
+		try  {
+			if(  bufor.size()  ==  maxSize  ){wait();}
+			bufor.add(  a  );
+			System.err.println("Wstawianie  liczby");
+			notifyAll();
+		}
+		catch(Exception  e){};
+    }
+}
+public  class  sserwer
+{
+    public  static  void  main(String  args[])
+    {
+        //System.setSecurityManager(new  RMISecurityManager());
+
+        try  {
+            System.out.println("sserwer:  zaczynam  tworzyc  obiekty  ...");
+            Fabryka  oo=  new  Fabryka("przyklad_rmi4");
+            System.out.println("sserwer:  obiekty  utworzone  !!!");
+        }  catch(Exception  e)  {
+            System.err.println("sserwer:  blad  !!!  "+e.getMessage());
+        }
+    }
+}
+
+---------------------------------interfejs--------------------------------------
+import  java.rmi.*;
+public  interface  OdleglyBufor  extends  Remote
+{
+	void  wstawElement(  int  el  )  throws  RemoteException;
+	int  pobierzElement()  throws  RemoteException;
+}
+import  java.rmi.*;
+import  java.util.*;
+public  interface  TworzOdlegleBufory  extends  Remote
+{
+        OdleglyBufor  nowyOdleg³yBufor(  String  s  )  throws  RemoteException;
+}
+
+-
+Fabryka buforów: zawiera s³ownik na bufor ze stringa; gdy próbujemy utworzyæ bufor
+z wykorzystan± wcze¶niej nazw±, fabryka zwraca ten, który ju¿ istnieje.
+
+-----------------------------------client---------------------------------------
+2 w±tki pobieraj± bufor niezale¿nie od siebie.
+
+
+ZADANIE 14 -------------------------------------
+Rozszerzenie zadania 11:
+
+Rozwi±¿ zadanie odleg³y prod & kons ale tym razem zezwala siê na wstawianie i 
+pobieranie dowolnych obiektów (niekoniecznie liczb "int"); tak wiêc interfejs 
+odleg³ego obiektu powinien mieæ metody:
+
+    void WstawElement(Serializable el) 
+    Serializable PobierzElement() 
+
+Koniecznie u¿yj mechanizmu "codebase" do kopiowania klas. Zaprojektuj odp 
+przyk³ady pokazuj±ce ¿e Twoje rozwi±zanie dzia³a poprawnie ...
+
+-----------------------------------client---------------------------------------
+import  java.rmi.*;
+import  java.io.*;
+import  java.rmi.registry.*;
+class  NiceObject  implements  Serializable  {
+          String  name;
+          NiceObject(  String  _name)  {
+                  name  =  _name;}
+          void  Show()  {
+                    System.err.println("Jestem  obiektem  "  +  name  );  }
+}
+
+class  Konsument  implements  Runnable  {
+        OdleglyBufor  bufor;
+        public  Konsument(  OdleglyBufor  a  )  {
+		bufor  =  a;
+        }
+
+        @Override
+        public  void  run()  {	
+		System.err.println("Konsument  zaczal  dzialanie"  );
+		try{
+		Thread.sleep(2000);
+		}catch(Exception  e){};
+		while(true){
+			try{
+		        		Thread.sleep(1500);
+			                NiceObject  b  =  (NiceObject)bufor.pobierzElement();
+				System.err.println("---------------------------\nKonsument  pobral  obiekt  ");
+				b.Show();
+			}
+			catch(  Exception  c  ){  
+				System.err.println("Konsument  blad!!!!"  );
+				c.printStackTrace();  }
+		}
+        }
+}
+
+class  Producent  implements  Runnable  {
+	OdleglyBufor  bufor;
+	int  licz  =  0;
+        public  Producent(  OdleglyBufor  a  )  {
+		bufor  =  a;
+        }
+        @Override
+        public  void  run()  {
+		while(true)
+		{
+			licz++;
+			try  {
+				Thread.sleep(1000);
+                NiceObject  a  =  new  NiceObject(  "Object  "  +  licz  );			
+				bufor.wstawElement(  (Object)a  );
+				System.err.println("----------------------------\nProducent  wstawil  obiekt  "  );
+				a.Show();
+			}
+			catch(  Exception  c  ){  System.err.println("Producent  blad!!!!"  );  c.printStackTrace();  };
+		}
+        }
+}
+
+public  class  kklient
+{
+    public  static  void  main(String  args[])
+    {
+        System.setProperty("java.security.policy","file:./server.policy");
+        System.setSecurityManager(new  RMISecurityManager());
+	OdleglyBufor  dd  =  null;
+        try  {
+            TworzOdlegleBufory  oo  =  (TworzOdlegleBufory)Naming.lookup(
+                "rmi://localhost/przyklad_rmi4");
+	    dd  =  oo.nowyOdleglyBufor();
+        }  catch(Exception  e)  {
+            System.err.println("kklient:  blad  !!!  "+e.getMessage());
+        }
+        new  Thread(new  Producent(  dd  )).start();
+        new  Thread(new  Konsument(  dd  )).start();
+    }
+}
+
+-----------------------------------server---------------------------------------
+import  java.rmi.*;
+import  java.rmi.registry.*;
+import  java.rmi.server.*;
+import  java.io.*;
+import  java.util.*;
+
+class  Fabryka
+implements  TworzOdlegleBufory,  Serializable
+{
+    Fabryka(String  s)  throws  RemoteException
+    {
+        super();
+        try  {
+            UnicastRemoteObject.exportObject(this);
+            Naming.rebind(s,this);
+        }  catch(Exception  e)  {
+            System.err.println("sserwer:  OdleglaKlasa(String);  blad  !!!  "+e.getMessage());
+        }
+        System.out.println("sserwer:  OdleglaKlasa(String);  ok");
+    }
+    Fabryka()  throws  RemoteException{
+        super();
+        System.out.println("sserwer:  OdleglaKlasa();  ok");}
+
+    public  OdleglyBufor  nowyOdleglyBufor(  )  throws  RemoteException
+    {
+        OdleglyBufor  nowyB  =  new  Bufor();
+        UnicastRemoteObject.exportObject(nowyB);
+        return  nowyB;
+    }
+}
+class  Bufor
+implements  OdleglyBufor,  Serializable
+{
+    Vector<Object>  bufor;
+    static  int  maxSize  =  10;  
+    Bufor()  throws  RemoteException
+    {
+        super();
+        bufor  =  new  Vector();
+        System.out.println("sserwer:  OdleglaKlasa(String);  ok");
+    }
+    public  synchronized  Object  pobierzElement()  throws  RemoteException
+    {
+	System.err.println("Pobranie  obiektu");
+	Object  res  =  null;
+	try  {
+		while(  bufor.isEmpty()  ){
+			wait();}	
+	              res  =    bufor.firstElement();
+		bufor.removeElementAt(0);
+		System.err.println("Usuwanie  liczby");
+		notifyAll();
+	}
+	catch(Exception  e){};
+	return  res;	
+    }
+
+    public  synchronized  void  wstawElement(Object  a)  throws  RemoteException
+    {
+
+	System.err.println("Wstawianie  obiektu");
+	try  {
+		if(  bufor.size()  ==  maxSize  ){
+			wait();}
+		bufor.add(  a  );
+		System.err.println("Wstawianie  liczby");
+		notifyAll();}
+	catch(Exception  e){};
+    }
+}
+
+public  class  sserwer
+{
+    public  static  void  main(String  args[])
+    {
+        System.setProperty("java.security.policy","file:./server.policy");
+        System.setSecurityManager(new  RMISecurityManager());
+        //System.setSecurityManager(new  RMISecurityManager());
+
+        try  {
+            System.out.println("sserwer:  zaczynam  tworzyc  obiekty  ...");
+            Fabryka  oo=  new  Fabryka("przyklad_rmi4");
+            System.out.println("sserwer:  obiekty  utworzone  !!!");
+        }  catch(Exception  e)  {
+            System.err.println("sserwer:  blad  !!!  "+e.getMessage());
+        }
+    }
+}
+
+---------------------------------interfejs--------------------------------------
+import  java.rmi.*;
+public  interface  OdleglyBufor  extends  Remote
+{
+	void  wstawElement(  Object  el  )  throws  RemoteException;
+	Object  pobierzElement()  throws  RemoteException;
+}
+import  java.rmi.*;
+import  java.util.*;
+public  interface  TworzOdlegleBufory  extends  Remote{
+        OdleglyBufor  nowyOdleglyBufor()  throws  RemoteException;
+}
+--------------------------------------------------------------------------------
+
+Klient NiceObject tworzy 2 w±tki:
+-konsument
+-producent
+które obs³uguj± obiekty typu NiceObject
+Serwer przechowuje obiekty jako typ Object(nie ma dostêpu do NiceObject ) 
+
+-----------------------------Wydruki z konsoli----------------------------------
+
+KLIENT:
+
+s384283@pc23m:~/Desktop/TAS_1 va -Djava.rmi.server.codebase=file:Desktop/TAS_1 -Djava.rmi.server.useCodebaseOnly=false kklient
+
+Konsument zaczal dzialanie
+Producent wstawil obiekt 
+Jestem obiektem Object 1
+Producent wstawil obiekt 
+Jestem obiektem Object 2
+Producent wstawil obiekt 
+Jestem obiektem Object 3
+Konsument pobral obiekt 
+Jestem obiektem Object 1
+Producent wstawil obiekt 
+Jestem obiektem Object 4
+Konsument pobral obiekt 
+Jestem obiektem Object 2
+Producent wstawil obiekt 
+Jestem obiektem Object 5
+Producent wstawil obiekt 
+Jestem obiektem Object 6
+Konsument pobral obiekt 
+Jestem obiektem Object 3
+Producent wstawil obiekt 
+Jestem obiektem Object 7
+
+SERWER
+
+java -Djava.rmi.server.debase=file:s384283@pc23m:~/Desktop/TAS_1 -Djava.rmi.server.useCodebaseOnly=false sserwer
+
+sserwer: OdleglaKlasa(String); ok
+Wstawianie obiektu
+Wstawianie liczby
+Wstawianie obiektu
+Wstawianie liczby
+Wstawianie obiektu
+Wstawianie liczby
+Pobranie obiektu
+Usuwanie liczby
+Wstawianie obiektu
+Wstawianie obiektu
+Wstawianie liczby
+Pobranie obiektu
+Usuwanie liczby
+Wstawianie obiektu
+Wstawianie liczby
+
+---------------------------------Wnioski----------------------------------------
+Ka¿dy obiekt poddany serializacji w Javie mo¿na rzutowaæ bez utraty informacji
+b±d¼ uszkodzenia struktury (bo serializacja zachowuje obiekty dok³adnie).
+
+}

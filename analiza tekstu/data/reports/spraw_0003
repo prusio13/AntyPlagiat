@@ -1,0 +1,207 @@
+przedmiot TAS temat A nr_indeksu 396464 liczba_pkt 5 
+
+
+
+Zadanie 1 -------------------------------------
+Rpcgen, aby stworzyæ strukturê o nieokre¶lonej wielko¶ci - w tym wypadku macierz liczb typu float - podczas generowania struktury macierzy w pliku nag³ówkowym zagnie¿d¿a podstrukturê. Zadaniem tej podstruktury (tutaj o nazwie Elem) jest przetrzymywanie informacji o ilo¶ci elementów w macierzy oraz wska¼nik na pierwszy element.
+
+Fragment kodu nag³ówka odpowiedzialny za strukturê Macierz:
+struct Macierz {          //Deklaracja i definicja struktury Macierz
+	struct {                //Deklaracja i definicja podstruktury Elem
+		u_int Elem_len;       //Deklaracja zmiennej do przetrzymywania ilo¶ci elementów
+		float *Elem_val;      //Deklaracja wska¼nika na pierwszy element
+	} Elem;
+	int IleW;               //Deklaracja zmiennych odpowiedzialnych za
+	int IleK;               //Przetrzymywanie informacji o ilo¶ci kolumn i wierszy
+};
+typedef struct Macierz Macierz;
+
+Zadanie 2 -------------------------------------
+Zmieni³em kod ¼ród³owy klienta, tak aby host by³ na sta³e ustawiony na localhosta,
+doda³em linijki odpowiedzialne za zamianê char* na integer oraz zmodyfikowa³em wywo³anie procedury progservice_1, ¿eby przyjmowa³a liczby do sumowania.
+
+Zmieniony kod funkcji main:
+host = "127.0.0.1";				//Ustawienie hosta na localhosta
+//Konwersja char* z argv[] na integer za pomoc± strtol z biblioteki stdlib
+int first_number = strtol(argv[1], NULL, 10);
+int second_number = strtol(argv[2], NULL, 10);
+
+W kodzie samej procedury progservice_1 doda³em przypisanie odpowiednich warto¶ci liczbowych do odpowiadaj±cych im zmiennym w strukturze ParaLiczb oraz warunek else po sprawdzeniu poprawno¶ci odbioru result_1, w którym jest wywo³anie wydruku wyniku.
+
+Zmieniony kod funkcji progservice_1:
+suma_1_arg.x1 = first_number;
+suma_1_arg.x2 = second_number;
+
+if (result_1 == (int *) NULL) {
+	clnt_perror (clnt, "call failed");
+} else {
+	printf("%d\n", *result_1);
+}
+
+Po stronie serwera natomiast doda³em przypisanie obliczeñ do zmiennej result oraz wypisanie jej w terminalu.
+
+Zmieniony kod serwera:
+result = argp->x1 + argp->x2; //wyci±gniêcie warto¶ci do sumowania i dodanie ich
+printf("%d\n", result);				//wypisanie ich w terminalu
+
+Po wykonaniu polecenia rpcinfo -p jako dostêpne pokaza³y siê procesy za³±czone w zad2_screenshot.png
+
+Dodatkowo za³±czam pliki z kodami programów zad2.x, zad2_client.c oraz zad2_server.c
+
+Zadanie 3 -------------------------------------
+Zmienony kod plik.x dotycz±cy macierzy:
+struct Macierz {
+  float Elem <>;
+  int IleW; int IleK;
+};
+typedef struct Macierz Mac;
+
+program ProgMacierze {
+  version VerMacierze {
+    void PokazMacierz(Mac) = 1;
+  } = 1;
+} = 0x21001234;
+
+W kliencie doda³em kod ustawiaj±cy warto¶ci zmiennych okre¶laj±cych wielko¶æ macierzy, rezerwuj±cy pamiêæ dla macierzy oraz wype³niaj±cy macierz warto¶ciami.
+
+Zmieniony kod klienta:
+pokazmacierz_1_arg.IleW = 3;
+pokazmacierz_1_arg.IleK = 4;
+pokazmacierz_1_arg.Elem.Elem_len = pokazmacierz_1_arg.IleK * pokazmacierz_1_arg.IleW;
+pokazmacierz_1_arg.Elem.Elem_val = calloc(pokazmacierz_1_arg.Elem.Elem_len, sizeof(float));
+
+pokazmacierz_1_arg.Elem.Elem_val[0] = 1.1;
+pokazmacierz_1_arg.Elem.Elem_val[1] = 1.2;
+pokazmacierz_1_arg.Elem.Elem_val[2] = 1.3;
+pokazmacierz_1_arg.Elem.Elem_val[3] = 1.4;
+pokazmacierz_1_arg.Elem.Elem_val[4] = 2.1;
+pokazmacierz_1_arg.Elem.Elem_val[5] = 2.2;
+pokazmacierz_1_arg.Elem.Elem_val[6] = 2.3;
+pokazmacierz_1_arg.Elem.Elem_val[7] = 2.4;
+pokazmacierz_1_arg.Elem.Elem_val[8] = 3.1;
+pokazmacierz_1_arg.Elem.Elem_val[9] = 3.2;
+pokazmacierz_1_arg.Elem.Elem_val[10] = 3.3;
+pokazmacierz_1_arg.Elem.Elem_val[11] = 3.4;
+
+Zamie¶ci³em równie¿ wywo³anie funkcji zwalniaj±cej pamiêæ:
+xdr_free((xdrproc_t) xdr_Mac, (char *) &pokazmacierz_1_arg);
+
+Po stronie serwera doda³em kod wy³uskuj±cy ilo¶æ kolumn i wierszy w macierzy oraz pêtle odpowiedzialne za wy¶wietlanie warto¶ci w macierzy.
+
+Zmieniony kod:
+int w = argp->IleW;
+int k = argp->IleK;
+int i = 0;
+int j = 0;
+
+for(i; i < w; i = i + 1) {
+	for(j; j < k; j = j + 1) {
+		printf("%0.2f ", argp->Elem.Elem_val[i * k + j]);
+	}
+	j = 0;
+	printf("\n");
+}
+
+Wynik dzia³ania programu za³±czy³em w pliku zad3_screenshot.png
+
+Dodatkowo za³±czam pliki z kodami programów zad3.x, zad3_client.c oraz zad3_server.c
+
+Zadanie 4 -------------------------------------
+Utworzy³em plik zad4.x o nastêpuj±cej tre¶ci:
+
+struct Macierz {
+  float Elem <>;
+  int IleW; int IleK;
+};
+typedef struct Macierz Mac;
+
+struct DwieMacierze {
+  Mac M1;
+  Mac M2;
+};
+typedef struct DwieMacierze DwieMac;
+
+program ProgMacierze {
+  version VerMacierze {
+    Mac dodajMacierze(DwieMac) = 1;
+    Mac przemnozMacierze(DwieMac) = 2;
+  } = 1;
+} = 0x21001234;
+
+Nastêpnie, w pliku zad4_client stworzy³em now± funkcjê "stworzMacierze", która odpowiedzialna jest za alokacjê pamiêci pod macierze oraz wpisanie do nich danych.
+
+Fragment kodu odpowiedzialny za tworzenie jednej z macierzy:
+DM1->M1.IleW = 3;
+DM1->M1.IleK = 3;
+DM1->M1.Elem.Elem_len = DM1->M1.IleW * DM1->M1.IleK;
+DM1->M1.Elem.Elem_val = calloc(DM1->M1.Elem.Elem_len, sizeof(float));
+
+DM1->M1.Elem.Elem_val[0] = 0.0;
+DM1->M1.Elem.Elem_val[1] = 1.0;
+
+Doda³em równie¿ pêtle wy¶wietlaj±c± macierze po dokonanych operacjach oraz kod zwalniaj±cy pamiêæ:
+xdr_free((xdrproc_t) xdr_DwieMac, (char *) &dodajmacierze_1_arg);
+xdr_free((xdrproc_t) xdr_DwieMac, (char *) &przemnozmacierze_1_arg);
+
+Po stronie serwera doda³em kod odpowiedzialny za dodawanie i mno¿enie macierzy,
+kolejno (result - macierz z alokowan± pamiêci±, przetrzymuj±ca wyniki operacji):
+for(i = 0; i < result.Elem.Elem_len; i = i + 1) {
+	result.Elem.Elem_val[i] = argp->M1.Elem.Elem_val[i] + argp->M2.Elem.Elem_val[i];
+}
+
+oraz
+
+for(i = 0; i < result.IleW; i = i + 1) {
+	for(j = 0; j < result.IleK; j = j + 1) {
+		for(l = 0; l < result.IleK; l = l + 1) {
+			result.Elem.Elem_val[i * result.IleW + j] = result.Elem.Elem_val[i * result.IleW + j] + argp->M1.Elem.Elem_val[i * result.IleW + l] * argp->M2.Elem.Elem_val[2*l + j];
+		}
+	}
+}
+
+Wynik dzia³ania programu za³±czy³em w pliku zad4_screenshot.png
+
+Dodatkowo za³±czam pliki z kodami programów zad4.x, zad4_client.c oraz zad4_server.c
+
+Zadanie A1 -------------------------------------
+Wska¼ników, jako takich, nie mo¿na przes³aæ przez sieæ w XDR, ale mo¿na je wykorzystaæ do przesy³ania rekurencyjnych typów danych (zw. optional-data). Takich typem danych s± listy ³±czone oraz drzewa.
+} {struct ParaLiczb {
+  int x1;
+  int x2;
+};
+typedef struct ParaLiczb ParaLi;
+program PROGSERVICE {
+  version VERSERVICE {
+    int suma(ParaLi) =1;
+  } = 1;
+} = 0x21000000;
+} {struct Macierz {
+  float Elem <>;
+  int IleW; int IleK;
+};
+typedef struct Macierz Mac;
+
+program ProgMacierze {
+  version VerMacierze {
+    void PokazMacierz(Mac) = 1;
+  } = 1;
+} = 0x21001234;
+} {struct Macierz {
+  float Elem <>;
+  int IleW; int IleK;
+};
+typedef struct Macierz Mac;
+
+struct DwieMacierze {
+  Mac M1;
+  Mac M2;
+};
+typedef struct DwieMacierze DwieMac;
+
+program ProgMacierze {
+  version VerMacierze {
+    Mac dodajMacierze(DwieMac) = 1;
+    Mac przemnozMacierze(DwieMac) = 2;
+  } = 1;
+} = 0x21001234;
+}
