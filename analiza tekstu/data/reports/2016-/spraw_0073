@@ -1,0 +1,281 @@
+przedmiot TAS temat A nr_indeksu 396395 liczba_pkt 4 
+
+
+
+Zadanie 40 -------------------------------------
+------------------------------------- PLIK q.h -------------------------------------
+//gsoap ns service name: qqq
+//gsoap ns service namespace: qqq
+
+//gsoap ns service style: document
+//gsoap ns service encoding: literal
+
+struct ns__t_tab {
+  float *__ptr; int __size;
+};
+int ns__pomnozRazy2(struct ns__t_tab par, struct ns__t_tab *return_);
+
+------------------------------------- PLIK q_serv.c --------------------------------
+#include "qqq.nsmap"
+
+int main() {
+  struct soap soap;
+  soap_init(&soap);
+
+  int b=soap_bind(&soap, NULL, 10000, 100); 
+  // 10000 -nr portu na ktorym serwer czeka na klientow
+  if(b<0) {soap_print_fault(&soap, stderr); soap_done(&soap); exit(1);}
+
+  while (1) {
+    soap_accept(&soap); // czeka na soap msg
+    soap_serve(&soap); // obsluga klienta
+      // UWAGA: mo¿na w tym miejscu tworzyc w±tek POSIX i przekazywaæ mu obs³ugê klienta !!!
+    soap_end(&soap); // zwalniani pamieci
+    printf("."); fflush(stdout);
+  }
+
+  return 0;
+}
+
+// implementacja operacji "pomnozRazy2"
+int ns__pomnozRazy2(struct soap* soap,
+    struct ns__t_tab x, struct ns__t_tab *return_) {
+  int i;
+
+  int d= x.__size; float *f1= x.__ptr;
+
+  printf("serwer/dbg: argument:\n");
+  for(i=0; i<d; i++) printf("%f ", x.__ptr[i]); printf("\n");
+
+  // zakladam ze return_ wskazuje na istniejaca struct ns__t_tab !!!
+  return_->__size= d;
+  float *f2= soap_malloc(soap, d*sizeof(float));
+  return_->__ptr= f2;
+
+  for(i=0; i<d; i++) f2[i]= 2*f1[i];
+
+  return SOAP_OK;
+}
+
+------------------------------------- PLIK q_client.c --------------------------------
+#include "qqq.nsmap"
+#include <stdio.h>
+
+int main() 
+{ 
+   struct soap soap; 
+   soap_init(&soap);
+   
+   struct ns__t_tab ar;
+   struct ns__t_tab ar2;
+   
+   // przygotowanie danych wejsciowych ...
+   const int dlugosc=55;
+   ar.__ptr= soap_malloc(&soap, dlugosc*sizeof(float)); 
+   // dane tak alokowane beda automatycznie zwalniane przy soap_end()
+   ar.__size= dlugosc;
+   int i;
+   for(i=0; i<dlugosc; i++) ar.__ptr[i]= i+1;
+
+   // wywo³anie operacji ...
+   // - adres serwera to "http://localhost:10000/soap/qqq/go"   
+   if( soap_call_ns__pomnozRazy2(&soap, 
+         "http://localhost:10000/soap/qqq/go", "", ar, &ar2) !=SOAP_OK ) {
+       soap_print_fault(&soap, stderr);
+     }
+
+   // pokazanie argumentu i wyniku:
+   int d;
+   printf("argument:\n"); d= ar.__size;
+   for(i=0; i<d; i++) printf("%f ", ar.__ptr[i]); printf("\n");
+   printf("wynik:\n"); d= ar2.__size;
+   for(i=0; i<d; i++) printf("%f ", ar2.__ptr[i]); printf("\n");
+
+   // zwalnianie pamiecie i inne ...
+   soap_end(&soap); // clean up and remove deserialized data 
+   soap_done(&soap); // detach environment (last use and no longer in scope)
+   
+   return 0;
+}
+
+------------------------------------- PLIK server.tcl --------------------------------
+lappend auto_path ./tclws ./tcllib ./tdom
+package require WS::Server
+package require WS::Embeded
+::WS::Server::Service -mode embedded -service qqq -ports 10000
+
+::WS::Server::ServiceProc qqq {pomnozRazyDwa {type int()}} {
+  par1 {type int() comment {ciag liczb int}}
+} {mnozy elementy ciagu razy 2} {
+  set w {}
+  foreach e $par1 {lappend w [expr {$e*2}]}
+  return [list pomnozRazyDwaResult $w]
+}
+
+::WS::Embeded::Listen 10000
+
+vwait qqq
+
+------------------------------------- PLIK client.tcl --------------------------------
+lappend auto_path ./tclws ./tcllib ./tdom
+package require WS::Client
+
+set w1 [::WS::Client::GetAndParseWsdl http://localhost:10000/service/qqq/wsdl]
+dict get $w1 name
+dict get $w1 location
+::WS::Client::CreateStubs qqq
+
+set r1 [qqq::pomnozRazyDwa {1 2 3}]
+puts $r1
+
+------------------------------------- WYDRUK Z KONSOLI --------------------------------
+Divoolej-MacbookPro% ./client
+argument:
+1.000000 2.000000 3.000000 4.000000 5.000000 6.000000 7.000000 8.000000 9.000000 10.000000 11.000000 12.000000 13.000000 14.000000 15.000000 16.000000 17.000000 18.000000 19.000000 20.000000 21.000000 22.000000 23.000000 24.000000 25.000000 26.000000 27.000000 28.000000 29.000000 30.000000 31.000000 32.000000 33.000000 34.000000 35.000000 36.000000 37.000000 38.000000 39.000000 40.000000 41.000000 42.000000 43.000000 44.000000 45.000000 46.000000 47.000000 48.000000 49.000000 50.000000 51.000000 52.000000 53.000000 54.000000 55.000000
+wynik:
+2.000000 4.000000 6.000000 8.000000 10.000000 12.000000 14.000000 16.000000 18.000000 20.000000 22.000000 24.000000 26.000000 28.000000 30.000000 32.000000 34.000000 36.000000 38.000000 40.000000 42.000000 44.000000 46.000000 48.000000 50.000000 52.000000 54.000000 56.000000 58.000000 60.000000 62.000000 64.000000 66.000000 68.000000 70.000000 72.000000 74.000000 76.000000 78.000000 80.000000 82.000000 84.000000 86.000000 88.000000 90.000000 92.000000 94.000000 96.000000 98.000000 100.000000 102.000000 104.000000 106.000000 108.000000 110.000000
+
+Zadanie 43 -------------------------------------
+
+------------------------------------- PLIK Client.java --------------------------------
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.net.HttpURLConnection;
+import javax.xml.xpath.XPath;
+import java.io.OutputStream;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import java.io.InputStream;
+import java.net.URL;
+
+public class Client {
+    private static final String request = 
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "    <SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:xsd=\"http://www.w3.org/1999/XMLSchema\" xmlns:xsi=\"http://www.w3.org/1999/XMLSchema-instance\">\n" +
+        "      <SOAP-ENV:Body>\n" +
+        "        <ns:pomnozRazyDwa xmlns:ns=\"qqq\">\n" +
+        "          <par xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xsi:type=\"SOAP-ENC:Array\" " +
+        "SOAP-ENC:offset=\"[0]\" SOAP-ENC:arrayType=\"xsd:float[5]\">\n" +
+        "            <item xsi:type=\"xsd:float\">1</item>\n" +
+        "            <item xsi:type=\"xsd:float\">2</item>\n" +
+        "            <item xsi:type=\"xsd:float\">3</item>\n" +
+        "            <item xsi:type=\"xsd:float\">3.5</item>\n" +
+        "            <item xsi:type=\"xsd:float\">4</item>\n" +
+        "          </par>\n" +
+        "        </ns:pomnozRazyDwa>\n" +
+        "      </SOAP-ENV:Body>\n" +
+        "    </SOAP-ENV:Envelope>";
+
+    public static void main(String[] args) throws Exception {
+        HttpURLConnection con = (HttpURLConnection)new URL("http://localhost:10000/soap/qqq/go").openConnection();
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        
+        con.setRequestMethod("POST");
+        con.setDoOutput(true);
+        OutputStream out = con.getOutputStream();
+        InputStream in = con.getInputStream();
+        out.write(request.getBytes());
+
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(in);
+
+        String string = "//item";
+        NodeList list = (NodeList)xPath.compile(string).evaluate(document, XPathConstants.NODESET);
+
+        for (int i = 0; i < list.getLength(); i++) {
+            System.out.println(list.item(i).getTextContent());
+        }
+    }
+}
+
+Zadanie 41 -------------------------------------
+
+------------------------------------- PLIK q.h -------------------------------------
+//gsoap ns service name: qqq
+//gsoap ns service namespace: qqq
+
+// gsoap ns service style: rpc
+// gsoap ns service encoding: encoded
+
+struct ns__t_tab {
+  float *__ptr;
+  int __size;
+};
+struct ns__result {
+  int __result;
+};
+int ns__iloczynSkalarny(struct ns__t_tab tab1, struct ns__t_tab tab2, struct ns__result *return_);
+
+------------------------------------- PLIK q_serv.c -------------------------------------
+#include "qqq.nsmap"
+
+int main() {
+  struct soap soap;
+  soap_init(&soap);
+
+  int b=soap_bind(&soap, NULL, 10000, 100); 
+     // 10000 -nr portu na ktorym serwer czeka na klientow
+  if(b<0) {soap_print_fault(&soap, stderr); soap_done(&soap); exit(1);}
+
+  printf("Serwer dziala\n");
+
+  while (1) {
+    soap_accept(&soap); // czeka na soap msg
+    soap_serve(&soap); // obsluga klienta
+      // UWAGA: mo¿na w tym miejscu tworzyc w±tek POSIX i przekazywaæ mu obs³ugê klienta !!!
+    soap_end(&soap); // zwalnianie pamieci
+    printf("."); fflush(stdout);
+  }
+
+  return 0;
+}
+
+int ns__iloczynSkalarny(struct soap* soap,
+    struct ns__t_tab tab1, struct ns__t_tab tab2, struct ns__result *return_) {
+  int i;
+
+  int d= tab1.__size; float *f1= tab1.__ptr;
+
+  printf("serwer/dbg: argument:\n");
+  for(i=0; i<d; i++) printf("%f ", tab1.__ptr[i]); printf("\n");
+  for(i=0; i<d; i++) printf("%f ", tab2.__ptr[i]); printf("\n");
+
+  // zakladam ze return_ wskazuje na istniejaca struct ns__t_tab !!!
+  int result;
+
+  for(i=0; i<d; i++) result += (tab1.__ptr[i] * tab2.__ptr[i]);
+  printf("%d ", result);
+  return_->__result = result;
+
+  return SOAP_OK;
+}
+
+------------------------------------- PLIK Client.java -------------------------------------
+GENERUJEMY POTRZEBNE PLIKI NA PODSTAWIE WSDLa POLECENIEM `wsimport -keep qqq.wsdl`
+
+import qqq.*;
+import java.util.Arrays;
+public class Client
+{
+    public static void main(String[] args)
+    {
+        Qqq qqq = new Qqq();
+        QqqPortType service = qqq.getQqq();
+        TTab tab1 = new TTab();
+        TTab tab2 = new TTab();
+        tab1.getItem().addAll(Arrays.asList(1f, 2f, 3f, 4f, 5f));
+        tab2.getItem().addAll(Arrays.asList(1f, 2f, 3f, 4f, 5f));
+        IloczynSkalarny iloczynSkalarny = new IloczynSkalarny();
+        iloczynSkalarny.setTab1(tab1);
+        iloczynSkalarny.setTab2(tab2);
+        Result result = service.iloczynSkalarny(iloczynSkalarny);
+        System.out.println(((JAXBElement<Integer>)result.getAny()).getValue());
+    }
+}
+------------------------------------- WYDRUK Z KONSOLI -------------------------------------
+Divoolej-MacbookPro% java -cp . Client
+55
+}

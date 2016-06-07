@@ -1,0 +1,72 @@
+przedmiot TAS temat D nr_indeksu 396448 liczba_pkt  
+
+
+
+Zadanie 40 -------------------------------------
+
+1. Kod serwera (TCL):
+
+source ./pkg/tclhttpd3.5.1/bin/httpd_app.tcl
+lappend auto_path ./tcllib
+
+lappend auto_path ./pkg
+package re SOAP::Domain
+
+SOAP::Domain::register -prefix /soap
+
+namespace eval qqq {
+  proc pomnozRazy2 x {
+    set y {}
+    foreach e $x {lappend y [expr {2*$e}]}
+    return [rpcvar::rpcvar float() $y]
+  }
+  SOAP::export pomnozRazy2
+}
+
+2. Kod klienta (PHP):
+
+<?php
+
+$client = new SoapClient(null, [
+	'location' => 'http://localhost:8015/soap',
+	'uri' => 'qqq', 
+	'trace' => 1 
+]);
+
+$result = $client->__soapCall('pomnozRazy2', [ 2 ]);
+
+echo 'RESULT: ' . "\n\n";
+print_r($result);
+echo "\n" . 'REQUEST: ' . "\n\n";
+print_r($client->__getLastRequest());
+echo "\n" . 'RESPONSE: ' . "\n\n";
+print_r($client->__getLastResponse());
+
+3. Komunikaty SOAP wysy³ane/odbierane przez klienta (przyk³ad)
+
+RESULT: 
+
+Array
+(
+    [0] => 4
+)
+
+REQUEST: 
+
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="qqq" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><SOAP-ENV:Body><ns1:pomnozRazy2><param0 xsi:type="xsd:int">2</param0></ns1:pomnozRazy2></SOAP-ENV:Body></SOAP-ENV:Envelope>
+
+RESPONSE: 
+
+<?xml version="1.0"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" xmlns:xsd="http://www.w3.org/1999/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<ns:pomnozRazy2Response xmlns:ns="qqq" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<return xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xsi:type="SOAP-ENC:Array" SOAP-ENC:offset="[0]" SOAP-ENC:arrayType="xsd:float[1]">
+<item xsi:type="xsd:float">4</item>
+</return>
+</ns:pomnozRazy2Response>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+}

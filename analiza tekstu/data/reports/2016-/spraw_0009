@@ -1,0 +1,159 @@
+przedmiot TAS temat A nr_indeksu 396443 liczba_pkt ? 
+
+
+Zadanie A.1------------------------------------
+wg mojego "researchu" i rozumienia wska¼ników nie mo¿na przekazywaæ pomiêdzy
+serwerem a klientem wska¼ników z trywialnego powodu, wska¼nik na dwóch innych
+urz±dzeniach bêdzie wskazywaæ 2 ró¿ne miejsca. Struktury oparte na wska¼nikach
+s± prawie awykonalne, prawie poniewa¿ mo¿na to obej¶æ tworz±c sztuczn± strukturê która zast±pi wska¼niki.
+
+Zadanie 1 -------------------------------------
+"float Elem <>;"
+zosta³o przetlumaczone jako:
+"struct {
+        u_int Elem_len;
+        float *Elem_val;
+} Elem;"
+Zadanie 2 -------------------------------------
+//screen za³±czony oddzielnie jako "A2 - screen.png"
+//client:
+#include "sum.h"
+#include <stdlib.h>
+
+void
+progservice_1(char *host, int a, int b)
+{
+	CLIENT *clnt;
+	int  *result_1;
+	ParaLi  suma_1_arg;
+	suma_1_arg.x1 = a;
+	suma_1_arg.x2 = b;
+#ifndef	DEBUG
+	clnt = clnt_create (host, PROGSERVICE, VERSERVICE, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (host);
+		exit (1);
+	}
+#endif	/* DEBUG */
+
+	result_1 = suma_1(&suma_1_arg, clnt);
+	if (result_1 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+	printf("%d \n", *result_1);
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+#endif	 /* DEBUG */
+}
+
+
+int
+main (int argc, char *argv[])
+{
+	char *host;
+
+	if (argc < 2) {
+		printf ("usage: %s server_host\n", argv[0]);
+		exit (1);
+	}
+	int a=atoi(argv[2]);
+	int b=atoi(argv[3]);
+	host = argv[1];
+	progservice_1 (host,a,b);
+exit (0);
+}
+
+
+//serv:
+#include "sum.h"
+
+int *
+suma_1_svc(ParaLi *argp, struct svc_req *rqstp)
+{
+	static int  result;
+	result = argp->x1 + argp->x2;
+
+	return &result;
+}
+
+Zadanie 3------------------------------------
+//serv:
+void *
+pokazmacierz_1_svc(Mac *macierz, struct svc_req *rqstp)
+{
+	static char * result;
+	int i,j;
+	for(i=0;i< macierz->IleW;i++){
+		for(j=0;j< macierz->IleK;j++){
+			printf("%f", macierz->Elem.Elem_val[i * macierz->IleK + j]);
+		printf(" ");
+}
+	printf("\n");
+	}
+	return (void *) &result;
+}
+//client:
+#include "macierz.h"
+
+void
+progmacierze_1(char *host,Mac macierz)
+{
+	CLIENT *clnt;
+	void  *result_1;
+	Mac  pokazmacierz_1_arg;
+	void  *result_2;
+	TrzyMac  operacjanamacierzach_1_arg;
+#ifndef	DEBUG
+	clnt = clnt_create (host, ProgMacierze, VerMacierze, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (host);
+		exit (1);
+	}
+#endif	/* DEBUG */
+
+	result_1 = pokazmacierz_1(&macierz, clnt);
+	if (result_1 == (void *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+	result_2 = operacjanamacierzach_1(&operacjanamacierzach_1_arg, clnt);
+	if (result_2 == (void *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+#endif	 /* DEBUG */
+}
+
+int
+main (int argc, char *argv[])
+{
+	char *host;
+	if (argc < 2) {
+		printf ("usage: %s server_host\n", argv[0]);
+		exit (1);
+	}	
+	Mac macierz;
+	printf("ilosc kolumn\n");
+        scanf("%i",&macierz.IleK);
+        printf("ilosc wierszy\n");
+        scanf("%i",&macierz.IleW);
+        fflush(stdin);
+        macierz.Elem.Elem_len=(macierz.IleK*macierz.IleW);
+	macierz.Elem.Elem_val = calloc(macierz.IleW * macierz.IleK, (sizeof(float)));
+	int i;
+	for(i=0; i<macierz.Elem.Elem_len; i++){
+		scanf("%f",&macierz.Elem.Elem_val[i]);
+		fflush(stdin);
+		}
+	host = argv[1];
+	progmacierze_1 (host,macierz);
+	free(macierz.Elem.Elem_val);
+exit (0);
+}
+//wydruk:
+1.000000 2.000000 3.000000 
+4.000000 5.000000 6.000000 
+7.000000 8.000000 9.000000 
+
+
+}

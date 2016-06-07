@@ -1,0 +1,59 @@
+przedmiot TAS temat C nr_indeksu 384200 liczba_pkt 2 
+
+
+
+Zadanie 20 -------------------------------------
+Spróbuj skompilowa? i uruchomi? przyk?ady zawarte w plikach przyk?ad Java i przyk?ad Tcl. W tym zadaniu uruchamiaj jedynie prost? metod? sayHello(). Wypróbuj dzia?anie klienta/serwera CORBA w nastepuj?cych konfiguracjach:
+            klient serwer
+        1.  java   java
+        2.  tcl      tcl
+        3.  java    tcl
+        4.  tcl      java
+Przekazywanie ref do obiektu CORBA zrealizuj poprzez IOR zapisany w pliku.
+
+Rozwi?zanie:
+Wydruki eksperymentów znajduj? si? w plikach: zad20a.png, zad20b.png, zad20c.png, zad20d.png .
+
+Zadanie 25 -------------------------------------
+Zak?adam ?e posiadamy IOR pewnego serwera Corba ...
+Napisz dwa klienty Corby (kli1 i kli2) pod dowolnym brokerem:
+- niech kli1 umieszcza ref do pewnego obiektu Corby w NamingService
+- niech kli2 odczytuje t? ref z NamingService (a NIE z pliku IOR) i wywo?uje pewn? metod?.
+
+Rozwi?zanie:
+Wydruk eksperymentu znajduje si? w pliku zad25.png .
+
+package re combat
+
+
+source COS_ns.tcl
+
+
+combat::ir add $_ir_COS_ns
+
+
+set ns [corba::string_to_object http://students.wmi.amu.edu.pl:20002/nsd.ior]
+
+
+$ns list 10 x y; join $x \n
+
+
+set q1 [$ns resolve_str "ABC"]
+
+
+package re combat
+
+
+source COS_ns.tcl
+
+
+combat::ir add $_ir_COS_ns
+
+
+set ns [corba::string_to_object http://students.wmi.amu.edu.pl:20002/nsd.ior]
+
+
+$ns list 10 x y; join $x \n
+
+
+$ns rebind {{id "ABC" kind ""}} $ns}

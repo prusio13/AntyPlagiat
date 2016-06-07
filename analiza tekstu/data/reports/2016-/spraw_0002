@@ -1,0 +1,236 @@
+przedmiot TAS temat A nr_indeksu 396153 liczba_pkt 3.5 
+
+
+
+*-------------*
+|  Zadanie 1. |
+*-------------*
+RPC strukturê Macierz
+
+struct Macierz {
+	float Elem <>;
+	int IleW;
+	int IleK;
+};
+
+T³umaczy jako 
+
+struct Macierz {
+	struct {
+		u_int Elem_len;
+		float *Elem_val;
+	} Elem;
+	int IleW;
+	int IleK;
+};
+
+Czyli t± dynamiczn± tablicê "float Elem <>;" rozbija na strukturê z³o¿on± z int'a wskazuj±cego na liczbê elementów oraz na wska¼nik na float'a, czyli na same warto¶æ.
+
+
+
+*-------------*
+|  Zadanie 2. |
+*-------------*
+----------------------------------------------------
+--------------------sum_client.c--------------------
+----------------------------------------------------
+void progservice_1(char *host, int no_1, int no_2)
+{
+	CLIENT *clnt;
+	int  *result_1;
+	ParaLi suma_1_arg;
+
+	suma_1_arg.x1 = no_1;
+	suma_1_arg.x2 = no_2;
+
+	#ifndef	DEBUG
+	clnt = clnt_create (host, PROGSERVICE, VERSERVICE, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (host);
+		exit (1);
+	}
+	#endif	/* DEBUG */
+
+	result_1 = suma_1(&suma_1_arg, clnt);
+	if (result_1 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+
+	printf("%d + %d = %d\n", no_1, no_2, *result_1);
+
+	#ifndef	DEBUG
+	clnt_destroy (clnt);
+	#endif	 /* DEBUG */
+}
+
+int main (int argc, char *argv[])
+{
+	char *host;
+	int no_1, no_2;
+
+	if (argc < 4) {
+		printf ("usage: %s server_host no_1 no_2\n", argv[0]);
+		exit (1);
+	}
+
+	host = argv[1];
+	sscanf (argv[2], "%d", &no_1);
+	sscanf (argv[3], "%d", &no_2);
+
+	progservice_1 (host, no_1, no_2);
+	exit (0);
+}
+
+----------------------------------------------------
+--------------------sum_client.c--------------------
+----------------------------------------------------
+int *suma_1_svc(ParaLi *argp, struct svc_req *rqstp)
+{
+	static int  result;
+
+	result = argp->x1 + argp->x2;
+
+	return &result;
+}
+
+----------------------------------------------------
+----------------wydruk z konsoli--------------------
+----------------------------------------------------
+- serwer nie produkuje ¿adnych wydruków
+- klient:
+[11:02]: ./sum_client localhost 232 222
+232 + 222 = 454
+
+
+
+*--------------*
+|  Zadanie 1a. |
+*--------------*
+- przekazaæ przez parametr listê
+- spróbowaæ po³±czyæ element pierwszy z ostatnim, ¿eby stworzyæ cykl
+- zobaczyæ czy on to bêdzie potrafi³ obs³u¿yæ
+
+Deklaracje wska¼ników w jêzyku RPC s± takie same jak w jêzyku C (np. "char *name" do pliku .h zostanie przeniesiony bez zmian).
+
+*-------------*
+|  Zadanie 3. |
+*-------------*
+-----------------------------------------------------------------------------
+----------------------------mac.x--------------------------------------------
+-----------------------------------------------------------------------------
+struct Matrix {
+	float elements<>;
+	int rows;
+	int columns;
+};
+
+program MATRIX_PROGRAM {
+	version MATRIX_VERSION {
+		int MATRIX_DISPLAY(Matrix) = 1; 
+	} = 1;
+} = 0x00396153;
+
+-----------------------------------------------------------------------------
+----------------------------mac_client.c-------------------------------------
+-----------------------------------------------------------------------------
+void matrix_program_1(char *host, int rows, int columns, float *values)
+{
+	// "output ommited" ...
+	Matrix  m;
+
+	// uzupe³nienie struktury Matrix potrzebnymi warto¶ciami
+	m.elements.elements_len = rows * columns;
+	m.elements.elements_val = values;
+	m.rows = rows;
+	m.columns = columns;
+
+	// "output ommited" ...
+}
+
+int main (int argc, char *argv[])
+{
+	char *host;
+	int rows, columns, argv_element;
+
+	// informacja o potrzebnych argumentach
+	if (argc < 5) {
+		printf ("usage: %s server_host rows columns values\n", argv[0]);
+		exit (1);
+	}
+
+	host 		= argv[1];
+	// atoi() rzutuje na typ INT
+	rows 		= atoi(argv[2]);
+	columns 	= atoi(argv[3]);
+	// licznik wskazuj±cy na pierwszy warto¶æ (macierzy) po¶ród argumentów	
+	argv_element	= 4;
+
+	// alokowanie pamiêci + uzupe³nienie macierzy warto¶ciami
+	float *values = malloc(rows * columns * sizeof(float));
+
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < columns; j++) {
+			values[i + j * columns] = atof(argv[argv_element]);
+			argv_element++;
+		}
+	}
+	
+	matrix_program_1 (host, rows, columns, values);
+	exit (0);
+}
+
+-----------------------------------------------------------------------------
+----------------------------mac_server.c-------------------------------------
+-----------------------------------------------------------------------------
+int *matrix_display_1_svc(Matrix *argp, struct svc_req *rqstp)
+{
+	static int  result;
+
+	// wyci±gniêcie lb. rzêdów i kolumn (dla czytelno¶ci)
+	int rows = argp->rows;
+	int columns = argp->columns;
+
+	// drukowanie informacji o otrzymanej macierzy 
+	printf("Matrix (%dx%d) received!\n", rows, columns);
+
+	// drukowanie samej macierzy
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < columns; j++) {
+			printf("[%d][%d]: %f\t",
+				i, j, argp->elements.elements_val[i + j * columns]);
+		}
+		printf("\n");
+	}
+
+	printf("-----------------------\n");
+
+	return &result;
+}
+
+-----------------------------------------------------------------------------
+----------------------------wydruk z konsoli---------------------------------
+-----------------------------------------------------------------------------
+Po stronie klienta:
+	[10:37]:./mac_client localhost 2 2 22 33 44 55	
+	[10:37]:./mac_client localhost 5 1 1 2 3 4 5
+	[10:37]:./mac_client localhost 2 2 22 33 44 55
+	
+Po stronie serwera:
+	[10:37]:./mac_server 
+	Matrix (2x2) received!
+	[0][0]: 22.000000	[0][1]: 33.000000	
+	[1][0]: 44.000000	[1][1]: 55.000000	
+	-----------------------
+	Matrix (5x1) received!
+	[0][0]: 1.000000	
+	[1][0]: 2.000000	
+	[2][0]: 3.000000	
+	[3][0]: 4.000000	
+	[4][0]: 5.000000	
+	-----------------------
+	Matrix (2x2) received!
+	[0][0]: 22.000000	[0][1]: 33.000000	
+	[1][0]: 44.000000	[1][1]: 55.000000	
+	-----------------------
+
+}

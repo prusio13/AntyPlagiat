@@ -1,0 +1,555 @@
+przedmiot TAS temat A nr_indeksu 383989 liczba_pkt 6 
+
+
+*ZAD_1********************************************************************************
+
+-->rpcgen t³umaczy zmienn± "float Elem <>;" na strukturê danych.
+
+s383989@pc18h:~/Desktop$ cd TAS
+s383989@pc18h:~/Desktop/TAS$ cd TEMAT_A
+s383989@pc18h:~/Desktop/TAS/TEMAT_A$ dir
+plik.x
+s383989@pc18h:~/Desktop/TAS/TEMAT_A$ rpcgen -aC plik.x
+s383989@pc18h:~/Desktop/TAS/TEMAT_A$ dir
+Makefile.plik  plik_clnt.c  plik_server.c  plik.x
+plik_client.c  plik.h	    plik_svc.c	   plik_xdr.c
+
+-->RPC razem ze zmiennymi sta³ymi, wyliczonymi, typedef i struct zamienia z³o¿one struktury.
+
+struct Macierz 
+{
+	struct 
+	{
+		u_int Elem_len; <--- ilo¶æ elementow macierzy
+		float *Elem_val; <--- wska¼nik na pocz±tkowy element macierzy
+	} Elem;
+	int IleW; <--- ilo¶æ wierszy 
+	int IleK; <--- ilo¶æ kolumn
+};
+typedef struct Macierz Macierz;
+
+typedef Macierz Mac;
+
+struct TrzyMacierze {
+	Mac M1;
+	Mac M2;
+	Mac M3;
+};
+
+*ZAD_2********************************************************************************
+
+s383989@pc18h:~/Desktop/TAS$ cd Sumx
+s383989@pc18h:~/Desktop/TAS/Sumx$ dir
+sum.x
+s383989@pc18h:~/Desktop/TAS/Sumx$ rpcgen -aC sum.x
+s383989@pc18h:~/Desktop/TAS/Sumx$ dir
+Makefile.sum  sum_clnt.c  sum_server.c	sum.x
+sum_client.c  sum.h	  sum_svc.c	sum_xdr.c
+
+s383989@pc18h:~/Desktop/TAS/Sumx$ make -f Makefile.sum
+cc -g    -c -o sum_clnt.o sum_clnt.c
+cc -g    -c -o sum_client.o sum_client.c
+cc -g    -c -o sum_xdr.o sum_xdr.c
+cc -g     -o sum_client  sum_clnt.o sum_client.o sum_xdr.o -lnsl 
+cc -g    -c -o sum_svc.o sum_svc.c
+cc -g    -c -o sum_server.o sum_server.c
+cc -g     -o sum_server  sum_svc.o sum_server.o sum_xdr.o -lnsl
+
+s383989@pc18h:~/Desktop/TAS/Sumx$ dir
+Makefile.sum  sum_client.o  sum.h	  sum_server.o	sum.x
+sum_client    sum_clnt.c    sum_server	  sum_svc.c	sum_xdr.c
+sum_client.c  sum_clnt.o    sum_server.c  sum_svc.o	sum_xdr.o
+
+*Funkcja  progservice_1 s³u¿y do tworzenia powi±zañ pomiêdzy zmiennymi struktury ParaLi.
+
+DOPISA£EM:
+
+	Server: 
+		suma_1_svc(ParaLi *argp, struct svc_req *rqstp)
+		{
+			static int  result;
+    		result = argp->x1 + argp->x2; <------
+			return &result;
+		}
+
+	CLient:
+		(...)
+		suma_1_arg.x1 = x1;
+    	suma_1_arg.x2 = x2;
+		(...)
+		printf("WYNIK: %i \n", *result_1);
+		(...)
+		int
+		main (int argc, char *argv[])
+		{
+			char *host;
+    		int x1, x2;
+			if (argc < 4) 
+			{
+				printf ("usage: %s server_host first_number second_number\n", argv[0]);
+				exit (1);
+			}
+			host = argv[1];
+   			sscanf (argv[2], "%i", &x1) != 1)
+    		sscanf (argv[3], "%i", &x2) != 1)
+   			progservice_1 (host, x1, x2);
+   			exit (0);
+			}
+
+s383989@pc23m:~/Desktop/TAS/Sumx$ ./sum_client localhost 2 4
+WYNIK: 6 
+
+*ZAD_3********************************************************************************
+
+s383989@pc23j:~/Desktop/TAS/PLIK$ dir
+Makefile.plik  plik_clnt.c  plik_server.c  plik.x
+plik_client.c  plik.h	    plik_svc.c	   plik_xdr.c
+
+DOPISA£EM:
+	//Zmienie³em sobie delikatnie uk³ad kodu po wywo³aniu "rpcgen -aC plik.x", bo by³o
+	//lekko nieczytelnie dla dopisania czego¶ wiêcej ni¿ 2 linijek. 
+
+	Server:
+		#include "plik.h"
+
+		void *
+		pokazmacierz_1_svc(Mac *argp, struct svc_req *rqstp)
+		{
+			static char * result;
+			for(int x=0; x<argp->IleK*argp->IleW; ++x)
+			{
+				if((x+1)%(argp->IleW)==0) 
+				{
+					printf("\n");
+				}
+				printf("%f ", argp->Elem.Elem_val[x]); 
+			}
+			return (void *) &result;
+		}
+	Client:
+		#include "plik.h"
+
+		void
+		progmacierze_1(char *host, int ileW, int ileK, float tab[])
+		{
+			CLIENT *clnt;
+			void  *result_1;
+			Mac  pokazmacierz_1_arg;
+			float* F = calloc((ileK*ileW), sizeof(float));	
+			for(int x=0; x<ileW*ileK; ++x)
+			{
+				F[x] = tab[x];
+			}
+			pokazmacierz_1_arg.Elem.Elem_val=F;
+			pokazmacierz_1_arg.Elem.Elem_len=ileW*ileK;
+			pokazmacierz_1_arg.IleW = ileW;
+			pokazmacierz_1_arg.IleK = ileK;
+		#ifndef	DEBUG
+			clnt = clnt_create (host, ProgMacierze, VerMacierze, "udp");
+			if (clnt == NULL) 
+			{
+				clnt_pcreateerror (host);
+				exit (1);
+			}
+		#endif	/* DEBUG */
+			result_1 = pokazmacierz_1(&pokazmacierz_1_arg, clnt);
+			if (result_1 == (void *) NULL) 
+			{
+				clnt_perror (clnt, "call failed");
+			}
+		#ifndef	DEBUG
+			clnt_destroy (clnt);
+		#endif	 /* DEBUG */
+		}
+
+		int
+		main (int argc, char *argv[])
+		{
+			char *host;	
+			int ileW, ile K;
+			if (argc < 2) 
+			{
+				printf ("usage: %s server_host\n", argv[0]);
+				exit (1);
+			}
+			host = argv[1];
+			ileW = atoi(argv[2]);
+			ileK = atoi(argv[3]);
+			float tab[ileW*ileK];	
+			for(int x = 4 ; x<(ileW*ileK)+4; ++x) 
+				{
+				tab[x-4] = atof(argv[x]);
+				}
+			progmacierze_1 (host,ileW, ileK, tab, ileW*ileK);
+		exit (0);
+		}
+
+
+
+CLIENT
+s383989@pc23j:~/Desktop/TAS/PLIK$ ./plik_client localhost 2 2 5.0 3.0 1.0 1.0
+
+SERVER
+s383989@pc23j:~/Desktop/TAS/PLIK$ ./plik_server
+5.000000 3.000000 
+1.000000 1.000000
+
+*ZAD_4********************************************************************************
+Zmieni³em nazawê plik na macierz - wygodniej siê czyta.
+//To zadanie zrobione z delikatna pomoca i tak nie zadzialalo jak trzeba
+s383989@pc23j:~/Desktop/TAS/MACIERZ$ 
+
+********Server**DODAWNANIE******** 
+#include "macierz.h"
+macierz *
+add_1_svc(matrix2 *argp, struct svc_req *rqstp)
+{
+static macierz  result;
+	macierz* A=&argp->a;
+	macierz* B=&argp->b;
+	if((A->l! = B->l)||(A->k! = B->k))
+	{
+		printf("ZLY ROZMIAR!!");
+		return NULL;
+	}
+	result.l=A->l;
+	result.k=A->k;
+	result.x.x_val = calloc(A->k * A->l, sizeof(int));
+	result.x.x_len = A->k * A->l;
+	for(int x=0;x<A->k*A->l;x++)
+	{
+		result.x.x_val[x]=A->x.x_val[x]+B->x.x_val[x];
+	}
+	return &result;
+}
+
+********Server**MNOZENIE******** 
+macierz *
+times_1_svc(matrix2 *argp, struct svc_req *rqstp)
+{
+	static macierz  result;
+	macierz* A = &argp->a;
+	macierz* B = &argp->b;
+	if((A->k != B->l))
+	{
+		printf("ZLY ROZMIAR!!");
+		return NULL;
+	}
+	result.l=A->l;
+	result.k=B->k;
+	result.x.x_val=calloc(result.k*result.l,sizeof(int));
+	result.x.x_len=result.k * result.l;
+	for(int x = 0; x < result.l; x++)
+	{
+		for(int y = 0; y < result.k; y++)
+		{
+			for(int z = 0; z < A->k; z++)
+			{
+				result.x.x_val[x*result.k+y]+=A->x.x_val[x*A->z+z]*B->x.x_val[z*B->z+y];				
+			}	
+		}
+	}
+	return &result;
+}
+********Client**DODAWANIE******** 
+#include "macierz.h"
+void
+progservice_1(char *host)
+{
+	CLIENT  *clnt;
+	macierz   *result_1;
+	matrix2   addarg;
+	int w,k;
+	scanf("%d%d", &w, &k);
+	addarg.a.x.x_val = calloc(w*k, sizeof(int));
+	addarg.b.x.x_val = calloc(w*k, sizeof(int));
+    addarg.a.x.x_len = w*k;
+    addarg.b.x.x_len = w*k;
+	addarg.a.l = w;
+    addarg.a.k = k;
+    addarg.b.l = w;
+    addarg.b.k = k;
+	for(int x=0; x<w*k; x++)
+	{
+		scanf("%d",addarg.a.x.x_val +x);
+    }
+	for(int x=0; x<w*k; x++)
+	{
+		scanf("%d",addarg.b.x.x_val +x);
+    }
+	#ifndef	DEBUG
+	clnt=clnt_create (host,PROGSERVICE,VERSERVICE,"udp");
+	if (clnt==NULL) 
+	{
+		clnt_pcreateerror(host);
+		exit (1);
+	}
+	#endif
+	result_1 = add_1(&addarg, clnt);
+	if (result_1 == (macierz *) NULL) 
+	{
+		clnt_perror (clnt, "call failed");
+	}
+	
+	for(x=0; x<result_1->l*result_1->k; ++x)
+	{
+		printf("%d ", result_1->x.x_val[x]);
+		if(x%result_1->l == result_1->l-1)
+		{
+			printf("\n");
+		}
+	}
+
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+	xdr_free ((xdrproc_t) xdr_macierz, (char *) result_1);
+
+#endif
+}
+********Client**MNOZENIE******** 
+
+void
+progservice_2(char *host)
+{
+	CLIENT*clnt;
+	macierz *result_1;
+	matrix2 addarg;
+	int w,k;
+	int w1,k1;
+	scanf("%d%d",&w,&k);
+	addarg.a.x.x_val=calloc(w*k,sizeof(int));
+	for(int x=0; x<w*k; x++)
+	{
+		scanf("%d",addarg.a.x.x_val+x);
+    }
+	scanf("%d%d",&w1,&k1);
+	addarg.b.x.x_val = calloc(w1*k1,sizeof(int));
+	addarg.a.x.x_len = w*k;
+    addarg.b.x.x_len = w1*k1;
+	addarg.a.l = w;
+    addarg.a.k = k;
+	addarg.b.l = w1;
+    addarg.b.k = k1;
+	for(int x=0; x<w1*k1; x++)
+	{
+		scanf("%d",addarg.b.x.x_val+x);
+    }
+	#ifndef	DEBUG
+	clnt = clnt_create (host, PROGSERVICE, VERSERVICE, "udp");
+	if (clnt == NULL) 
+	{
+		clnt_pcreateerror (host);
+		exit (1);
+	}
+	#endif
+	result_1 = times_1(&addarg, clnt);
+	if (result_1 == (macierz *) NULL) 
+	{
+		clnt_perror (clnt, "call failed");
+	}
+	for(int x = 0; x < result_1->l * result_1->k; ++x)
+	{
+		printf("%d ", result_1->x.x_val[i]);
+		if(i % result_1->l == result_1->l-1) printf("\n");
+	}
+	xdr_free ((xdrproc_t) xdr_macierz, (char *) result_1);
+	free(addarg.a.x.x_val);
+	free(addarg.b.x.x_val);
+	#ifndef	DEBUG
+	clnt_destroy (clnt);
+	#endif
+}
+
+
+int
+main (int argc, char *argv[])
+{
+	char *host;
+	if (argc < 2) 
+	{
+		printf ("usage: %s server_host\n", argv[0]);
+		exit (1);
+	}
+	host = argv[1];
+	progservice_2 (host);
+exit (0);
+}
+
+WYNIKI
+
+WYNIK:dadawanie
+
+s383989@pc23j:~/Desktop/TAS/MACIERZ$ ./macierz_server
+s383989@pc23j:~/Desktop/TAS/MACIERZ$ ./macierz_client localhost
+3 3
+
+1 1 1
+1 1 1
+1 1 1
+
+2 2 2
+2 2 2
+2 2 2
+
+3 3 3
+3 3 3
+3 3 3
+
+WYNIK:mnozenie NIE MA WYNIKU BO CO¦ NIE DZIA£A
+
+*ZAD_5********************************************************************************
+
+PARAMETRY KLIENTA:
+TIMEOUT_RETRY: Czas powtórzenia zapytania do serwera.
+TIMEOUT: Wskazuje czas oczekiwania na odpowiedz serwera.
+
+
+int *
+suma_1_svc(ParaLi *argp, struct svc_req *rqstp)
+{
+	static int result;
+        printf("%d %d\n",argp->x1,argp->x2); 
+        result=argp->x1+argp->x2;
+	sleep(1);
+	return &result;
+}
+
+void
+progservice_1(char *host, int x1, int x2)
+{
+	CLIENT *clnt;
+	int  *result_1;
+	ParaLi add2arg;
+	#ifndef	DEBUG
+	clnt = clnt_create (host, PROGSERVICE, VERSERVICE, "udp");
+	if (clnt == NULL)
+	{
+		clnt_pcreateerror (host);
+		exit (1);
+	}
+	struct timeval TIMEOUT = {0,500000};
+	clnt_control( clnt, CLSET_TIMEOUT, &TIMEOUT );
+	struct timeval TIMEOUT_RETRY = { 0, 0 };
+	clnt_control( clnt, CLSET_RETRY_TIMEOUT, &TIMEOUT_RETRY );
+	#endif
+    add2arg.x1 = x1;
+    add2arg.x2 = x2;
+	result_1 = suma_1(&add2arg, clnt);
+	if (result_1 == (int *) NULL) 
+	{
+		clnt_perror (clnt, "call failed");
+	}
+    printf("%d\n" ,*result_1);
+	#ifndef	DEBUG
+	clnt_destroy(clnt);
+	#endif
+}
+
+************************* 
+timeout=2s
+timeout retry = 0.25s 
+Server otrzyma 4 zapytania
+Client otrzyma³ wynik
+*************************
+timeout=0.5s
+timeout retry = 0.25s 
+Server otrzyma 2 zapytania
+Client nie otrzyma³ wyniku
+************************* 
+
+KLIENT:
+s383989@pc23j:~/Desktop/TAS/suma1234$ sudo ./sum_client localhost 1 1
+2
+
+TIMEOUT 1s TIMEOUT_RETRY 1s
+
+SERWER:
+s383989@pc23j:~/Desktop/TAS/suma1234$ sudo ./sum_server 
+10 15
+
+KLIENT
+TIMEOUT 0.5s, TIMEOUT_RETRY 0s:
+
+s383989@pc23j:~/Desktop/TAS/suma1234$ ./sum_client localhost 11 4
+Suma dwoch liczb: 15
+
+SERWER 
+s383989@pc23j:~/Desktop/TAS/suma1234$ sudo ./sum_server  
+11 4
+11 4
+11 4
+11 4
+...
+
+JAKA MUSI BYÆ WARTO¦Æ, ¯EBY KLIENT OTRZYMA£ ODPOWIED¬:
+Czas realizacji procedury musi byæ mniejszy ni¿ warto¶ci TIMEOUT. Natomiast TIMEOUT_RETRY ma znaczenie, 
+gdy zachodz± straty pakietów udp w sieci.
+
+
+
+
+*ZAD_7********************************************************************************
+
+ODPOWIED¬
+RPC pozwala ³±czyæ ze sob± ró¿ne jêzyki programowania.
+
+import java.io.IOException;
+import org.acplt.oncrpc.*;
+import java.net.InetAddress;
+public class get_sum 
+{
+	static int opt;
+    public static void main(String [] args) 
+	{
+		sumClient client = null;
+		try 
+		{
+			client = new sumClient(InetAddress.getByName(args[0]),
+			OncRpcProtocols.ONCRPC_TCP);
+		} 
+		catch (Exception e) 
+		{
+			System.out.println("infoline: error when creating RPC client:");
+			e.printStackTrace(System.out);
+		}
+		client.getClient().setTimeout(200*1000);
+		System.out.print("Making request to server");
+		ParaLi arg1 =new ParaLi ();
+		arg1.value.x1=Integer.parseInt(args[1]);
+		arg1.value.x2=Integer.parseInt(args[2]);
+		try 
+		{
+			int res =client.suma_1(arg1);
+			System.out.println("Result is:"+ (char)res);
+		} 
+		catch (Exception e) 
+		{
+			System.out.println("Error contacting server");
+			e.printStackTrace(System.out);
+			return;
+		}
+		try 
+		{
+		client.close();
+		} 
+		catch (Exception e) 
+		{
+			System.out.println("infoline: error when closing client:");
+			e.printStackTrace(System.out);
+		}
+			client = null;
+    }
+}
+
+s383989@pc23j:~/Desktop/TAS/jav2 java -classpath oncrpc.jar get_sum localhost 34 6
+SUMA: 40
+
+s383989@pc23j:~/Desktop/TAS/jav sudo ./sum_server 
+34 6
+
+
+
+
+
+
+}
